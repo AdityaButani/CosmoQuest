@@ -7,7 +7,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "questify-secret-key-2024")
+app.secret_key = os.environ.get("SESSION_SECRET", "cosmosquest-secret-key-2024")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure session settings - use server-side storage for large quest data
@@ -22,4 +22,6 @@ quest_data_cache = {}
 from routes import *
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Disable debug mode for testing to prevent auto-restarts
+    debug_mode = os.environ.get("FLASK_DEBUG", "False").lower() == "true"
+    app.run(host='0.0.0.0', port=5000, debug=debug_mode)

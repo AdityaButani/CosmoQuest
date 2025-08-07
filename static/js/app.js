@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
-    console.log('Questify app initialized');
+    console.log('CosmosQuest app initialized');
     
     // Add floating animation to icons
     const icons = document.querySelectorAll('.fa-space-shuttle, .fa-rocket');

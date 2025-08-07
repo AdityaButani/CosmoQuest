@@ -3,11 +3,15 @@ import requests
 import json
 import logging
 from typing import Dict, Optional, Any
+from groq_api_manager import get_groq_manager
 
 # API Configuration
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")  # Kept for backward compatibility
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY", "")
+
+# Initialize the Groq API manager
+groq_manager = get_groq_manager()
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
@@ -158,27 +162,62 @@ def enrich_visual_suggestions_with_images(quest_data: Dict[str, Any], topic: str
         # Return original quest_data if enrichment fails
         return quest_data
 
-def make_ai_request(prompt: str, use_openai: bool = False) -> Optional[Dict[str, Any]]:
-    """Make request to AI API with fallback support"""
-    if use_openai and not OPENAI_API_KEY:
-        logging.error("OpenAI API key not available for fallback")
-        return None
-    elif not use_openai and not GROQ_API_KEY:
-        logging.error("Groq API key not available")
-        return None
+def make_ai_request(prompt: str, use_openai: bool = False, quest_num: int = None) -> Optional[Dict[str, Any]]:
+    """Make request to AI API with enhanced fallback support using Groq API manager"""
+    
+    # If OpenAI is explicitly requested, use it directly
+    if use_openai:
+        if not OPENAI_API_KEY:
+            logging.error("OpenAI API key not available for fallback")
+            return None
+        return _make_openai_request(prompt)
+    
+    # Use the Groq API manager for intelligent key management
+    try:
+        logging.info(f"Making Groq API request (quest {quest_num if quest_num else 'unknown'})")
         
-    api_url = OPENAI_API_URL if use_openai else GROQ_API_URL
-    api_key = OPENAI_API_KEY if use_openai else GROQ_API_KEY
-    model = "gpt-3.5-turbo" if use_openai else "llama-3.3-70b-versatile"
-    provider = "OpenAI" if use_openai else "Groq"
+        # Try using the Groq manager
+        result = groq_manager.make_request(
+            prompt=prompt,
+            model="llama-3.3-70b-versatile",
+            temperature=0.7,
+            max_tokens=2000,
+            quest_num=quest_num
+        )
+        
+        if result:
+            logging.info("Successfully generated content using Groq API manager")
+            return result
+        
+        # If Groq manager fails completely, fall back to OpenAI if available
+        if OPENAI_API_KEY:
+            logging.warning("Groq API manager failed, falling back to OpenAI")
+            return _make_openai_request(prompt)
+        else:
+            logging.error("All API options exhausted")
+            return None
+            
+    except Exception as e:
+        logging.error(f"Error in make_ai_request: {str(e)}")
+        
+        # Final fallback to OpenAI
+        if OPENAI_API_KEY:
+            logging.warning("Exception in Groq manager, falling back to OpenAI")
+            return _make_openai_request(prompt)
+        
+        return None
+
+def _make_openai_request(prompt: str) -> Optional[Dict[str, Any]]:
+    """Make a request to OpenAI API"""
+    api_url = "https://api.openai.com/v1/chat/completions"
     
     headers = {
-        "Authorization": f"Bearer {api_key}",
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
         "Content-Type": "application/json"
     }
     
     payload = {
-        "model": model,
+        "model": "gpt-3.5-turbo",
         "messages": [
             {"role": "system", "content": prompt}
         ],
@@ -192,22 +231,17 @@ def make_ai_request(prompt: str, use_openai: bool = False) -> Optional[Dict[str,
         if response.status_code == 200:
             data = response.json()
             content = data['choices'][0]['message']['content'].strip()
-            logging.info(f"Successfully generated content using {provider}")
+            logging.info("Successfully generated content using OpenAI")
             return json.loads(content)
         else:
-            error_text = response.text
-            logging.error(f"{provider} API error: {response.status_code} - {error_text}")
-            
-            # Check if it's a rate limit error
-            if response.status_code == 429:
-                return {"rate_limit": True, "provider": provider}
+            logging.error(f"OpenAI API error: {response.status_code} - {response.text}")
             return None
             
     except json.JSONDecodeError as e:
-        logging.error(f"{provider} API returned invalid JSON: {str(e)}")
+        logging.error(f"OpenAI API returned invalid JSON: {str(e)}")
         return None
     except Exception as e:
-        logging.error(f"{provider} API request failed: {str(e)}")
+        logging.error(f"OpenAI API request failed: {str(e)}")
         return None
 
 def generate_quest_content(topic: str, quest_num: int, context: str = "") -> Optional[Dict[str, Any]]:
@@ -344,21 +378,12 @@ Generate this exact JSON structure with content focused ONLY on {spec['content_f
 
         system_prompt += "\n}\n\nEnsure all content is accurate, educational, and appropriate for the quest level. Make the content engaging and progressive. Replace all placeholder text with actual topic-specific content."
 
-        # Try Groq first, fallback to OpenAI if rate limited
-        logging.info("Attempting quest generation with Groq API")
-        result = make_ai_request(system_prompt, use_openai=False)
-        
-        # Check if we hit a rate limit and need to fallback
-        if result and isinstance(result, dict) and result.get("rate_limit"):
-            logging.warning(f"Groq API rate limited, falling back to OpenAI")
-            if OPENAI_API_KEY:
-                result = make_ai_request(system_prompt, use_openai=True)
-            else:
-                logging.warning("OpenAI API key not available, using intelligent fallback content")
-                return create_fallback_quest_content(topic, quest_num, spec)
+        # Use the enhanced API manager with quest-specific handling
+        logging.info(f"Attempting quest {quest_num} generation for topic: {topic}")
+        result = make_ai_request(system_prompt, use_openai=False, quest_num=quest_num)
         
         if not result:
-            logging.error("Failed to generate quest content with both providers")
+            logging.error(f"Failed to generate quest {quest_num} content for topic: {topic}")
             return create_fallback_quest_content(topic, quest_num, spec)
         
         # Validate required fields
@@ -368,12 +393,39 @@ Generate this exact JSON structure with content focused ONLY on {spec['content_f
         
         for field in required_fields:
             if field not in result:
-                logging.error(f"Missing required field '{field}' in quest response")
+                logging.error(f"Missing required field '{field}' in quest {quest_num} response")
                 return create_fallback_quest_content(topic, quest_num, spec)
+        
+        # Additional validation for quiz data if present
+        if spec.get('has_quiz') and 'quiz' in result:
+            quiz_data = result['quiz']
+            if not isinstance(quiz_data, dict):
+                logging.error(f"Quiz data is not a dictionary in quest {quest_num}")
+                return create_fallback_quest_content(topic, quest_num, spec)
+            
+            # Validate quiz structure
+            quiz_required_fields = ['type', 'instructions', 'questions']
+            if spec['quiz_type'] != 'matching':
+                quiz_required_fields.append('correct_answers')
+            else:
+                quiz_required_fields.extend(['left_items', 'right_items', 'correct_matches'])
+            
+            for quiz_field in quiz_required_fields:
+                if quiz_field not in quiz_data:
+                    logging.error(f"Missing required quiz field '{quiz_field}' in quest {quest_num}")
+                    return create_fallback_quest_content(topic, quest_num, spec)
+            
+            # Validate questions array
+            if not isinstance(quiz_data.get('questions'), list) or len(quiz_data['questions']) == 0:
+                logging.error(f"Invalid or empty questions array in quest {quest_num}")
+                return create_fallback_quest_content(topic, quest_num, spec)
+            
+            logging.info(f"Quest {quest_num} quiz data validation passed")
         
         # Enrich visual suggestions with actual images
         result = enrich_visual_suggestions_with_images(result, topic)
         
+        logging.info(f"Successfully generated quest {quest_num} content for topic: {topic}")
         return result
             
     except Exception as e:

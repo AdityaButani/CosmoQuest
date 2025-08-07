@@ -78,25 +78,50 @@ async function handleQuizSubmission(event) {
         const formData = new FormData(form);
         const answers = {};
         
-        // Get all form inputs
+        // Get all form inputs with better debugging
         const inputs = form.querySelectorAll('input[name^="q"], select[name^="q"]');
+        console.log('Found inputs:', inputs.length);
+        
         inputs.forEach(input => {
+            console.log(`Input: ${input.name}, type: ${input.type}, value: ${input.value}, checked: ${input.checked}`);
+            
             if (input.type === 'radio' && input.checked) {
                 answers[input.name] = input.value;
+                console.log(`Radio answer captured: ${input.name} = ${input.value}`);
             } else if (input.type === 'text' || input.tagName === 'SELECT') {
+                if (input.value.trim() !== '') {
+                    answers[input.name] = input.value;
+                    console.log(`Text/Select answer captured: ${input.name} = ${input.value}`);
+                }
+            } else if (input.type === 'checkbox' && input.checked) {
                 answers[input.name] = input.value;
+                console.log(`Checkbox answer captured: ${input.name} = ${input.value}`);
             }
         });
+        
+        console.log('Final answers object:', answers);
+        console.log('Number of answers collected:', Object.keys(answers).length);
+        
+        // Validate we have answers
+        if (Object.keys(answers).length === 0) {
+            throw new Error('No answers were collected. Please make sure you have answered all questions.');
+        }
         
         formData.set('answers', JSON.stringify(answers));
         
         // Submit quiz
+        console.log('Submitting quiz with answers:', answers);
         const response = await fetch('/submit-quiz', {
             method: 'POST',
             body: formData
         });
         
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const result = await response.json();
+        console.log('Quiz submission result:', result);
         
         if (result.success) {
             displayQuizResults(result, resultsDiv);
@@ -113,7 +138,39 @@ async function handleQuizSubmission(event) {
         
     } catch (error) {
         console.error('Quiz submission error:', error);
-        showAlert('Failed to submit quiz. Please try again.', 'error');
+        
+        // Show detailed error message
+        let errorMessage = 'Failed to submit quiz. ';
+        if (error.message.includes('No answers')) {
+            errorMessage += 'Please make sure you have answered all questions before submitting.';
+        } else if (error.message.includes('Session expired')) {
+            errorMessage += 'Your session has expired. Please refresh the page and start again.';
+        } else if (error.message.includes('HTTP')) {
+            errorMessage += 'Server error occurred. Please try again in a moment.';
+        } else {
+            errorMessage += 'Please try again or refresh the page if the problem persists.';
+        }
+        
+        showAlert(errorMessage, 'error');
+        
+        // For debugging: show what answers were collected
+        console.log('Debug - Collected answers:', answers);
+        console.log('Debug - Form inputs found:', inputs.length);
+        
+        // Add debug button in development
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            const debugInfo = document.createElement('div');
+            debugInfo.className = 'mt-4 p-2 bg-gray-800 rounded text-sm';
+            debugInfo.innerHTML = `
+                <p><strong>Debug Info:</strong></p>
+                <p>Answers collected: ${Object.keys(answers).length}</p>
+                <p>Form inputs found: ${inputs.length}</p>
+                <button onclick="debugQuizAnswers()" class="mt-2 px-2 py-1 bg-blue-600 rounded text-xs">
+                    Debug Quiz
+                </button>
+            `;
+            resultsDiv.appendChild(debugInfo);
+        }
     } finally {
         // Restore button
         submitButton.innerHTML = originalButtonText;
@@ -172,15 +229,49 @@ function showCompletionOptions(questNum) {
 
 async function completeQuest(questNum) {
     try {
+        // Add loading state to button if it exists
+        const completeButtons = document.querySelectorAll('button');
+        let targetButton = null;
+        
+        completeButtons.forEach(button => {
+            if (button.textContent.includes('Complete Quest')) {
+                targetButton = button;
+                button.disabled = true;
+                button.innerHTML = '<span class="loading-spinner mr-2"></span>Completing Quest...';
+            }
+        });
+        
+        // Show loading overlay
+        showLoadingOverlay('Completing quest and loading next adventure...');
+        
+        console.log('Attempting to complete quest:', questNum);
+        
+        // Validate questNum
+        if (!questNum || questNum < 1 || questNum > 5) {
+            throw new Error('Invalid quest number: ' + questNum);
+        }
+        
         const formData = new FormData();
         formData.append('quest_num', questNum);
         
+        console.log('Sending completion request for quest:', questNum);
+        
         const response = await fetch('/complete-quest', {
             method: 'POST',
-            body: formData
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
         });
         
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const result = await response.json();
+        console.log('Quest completion result:', result);
         
         if (result.success) {
             showAlert(result.message, 'success');
@@ -188,22 +279,55 @@ async function completeQuest(questNum) {
             // Update planet progression UI
             updatePlanetProgression(result.completed_quests);
             
+            // Show loading for next quest
+            if (parseInt(questNum) < 5) {
+                showLoadingOverlay('Loading your next quest adventure...');
+            }
+            
             // Navigate to next quest after delay
             setTimeout(() => {
                 if (parseInt(questNum) < 5) {
                     window.location.href = result.next_quest_url;
                 } else {
                     // Show completion celebration
+                    hideLoadingOverlay();
                     showQuestCompletionCelebration();
                 }
             }, 2000);
         } else {
-            throw new Error(result.error || 'Failed to complete quest');
+            throw new Error(result.error || 'Unknown error occurred while completing quest');
         }
         
     } catch (error) {
         console.error('Quest completion error:', error);
-        showAlert('Failed to complete quest. Please try again.', 'error');
+        
+        // Show more specific error message
+        let errorMessage = 'Failed to complete quest. ';
+        if (error.message.includes('HTTP 400')) {
+            errorMessage += 'Invalid request data.';
+        } else if (error.message.includes('HTTP 500')) {
+            errorMessage += 'Server error occurred.';
+        } else if (error.message.includes('Session expired') || error.message.includes('No active quest')) {
+            errorMessage += 'Your session has expired. Please start a new quest.';
+        } else if (error.message.includes('Invalid quest number')) {
+            errorMessage += 'Invalid quest number provided.';
+        } else {
+            errorMessage += 'Please try again or refresh the page.';
+        }
+        
+        showAlert(errorMessage, 'error');
+    } finally {
+        // Hide loading overlay
+        hideLoadingOverlay();
+        
+        // Restore button state
+        const completeButtons = document.querySelectorAll('button');
+        completeButtons.forEach(button => {
+            if (button.disabled && button.textContent.includes('Completing')) {
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-check mr-2"></i>Complete Quest';
+            }
+        });
     }
 }
 
@@ -422,6 +546,46 @@ function showAlert(message, type = 'info') {
     }, 5000);
 }
 
+function debugQuizAnswers() {
+    const form = document.getElementById('quiz-form');
+    if (!form) {
+        console.log('No quiz form found');
+        return;
+    }
+    
+    console.log('=== QUIZ DEBUG INFO ===');
+    const inputs = form.querySelectorAll('input[name^="q"], select[name^="q"]');
+    console.log(`Found ${inputs.length} quiz inputs`);
+    
+    inputs.forEach((input, index) => {
+        console.log(`Input ${index + 1}:`, {
+            name: input.name,
+            type: input.type,
+            value: input.value,
+            checked: input.checked,
+            tagName: input.tagName
+        });
+    });
+    
+    const answers = {};
+    inputs.forEach(input => {
+        if (input.type === 'radio' && input.checked) {
+            answers[input.name] = input.value;
+        } else if (input.type === 'text' || input.tagName === 'SELECT') {
+            if (input.value.trim() !== '') {
+                answers[input.name] = input.value;
+            }
+        } else if (input.type === 'checkbox' && input.checked) {
+            answers[input.name] = input.value;
+        }
+    });
+    
+    console.log('Collected answers:', answers);
+    console.log('========================');
+    
+    return answers;
+}
+
 // Add smooth transitions for quest navigation
 document.querySelectorAll('a[href^="/quest/"]').forEach(link => {
     link.addEventListener('click', function(e) {
@@ -619,3 +783,58 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Loading overlay functions
+function showLoadingOverlay(message = 'Loading...') {
+    // Remove existing overlay if present
+    hideLoadingOverlay();
+    
+    // Create overlay element
+    const overlay = document.createElement('div');
+    overlay.id = 'loading-overlay';
+    overlay.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center';
+    
+    // Create loading content
+    overlay.innerHTML = `
+        <div class="loading-card backdrop-blur-sm rounded-2xl border border-purple-500/50 shadow-2xl p-8 max-w-md mx-4 text-center">
+            <div class="flex flex-col items-center space-y-4">
+                <div class="relative">
+                    <div class="w-16 h-16 border-4 border-purple-500/30 rounded-full animate-spin">
+                        <div class="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-purple-400 rounded-full animate-spin"></div>
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i class="fas fa-rocket text-purple-400 text-lg animate-pulse"></i>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-xl font-bold text-white">${message}</h3>
+                    <p class="text-gray-400 text-sm">This may take a moment...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add to document
+    document.body.appendChild(overlay);
+    
+    // Animate in
+    requestAnimationFrame(() => {
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.3s ease';
+        requestAnimationFrame(() => {
+            overlay.style.opacity = '1';
+        });
+    });
+}
+
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            if (overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
+            }
+        }, 300);
+    }
+}

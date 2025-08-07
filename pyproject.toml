@@ -1,7 +1,7 @@
 [project]
-name = "repl-nix-workspace"
+name = "cosmosquest"
 version = "0.1.0"
-description = "Add your description here"
+description = "CosmosQuest - Turn Any Topic into a Learning Adventure"
 requires-python = ">=3.11"
 dependencies = [
     "email-validator>=2.2.0",
