@@ -1,0 +1,303 @@
+/* Space Theme Custom Styles */
+:root {
+    --space-dark: #0a0a0f;
+    --space-card: #1a1a2e;
+    --purple-glow: #8b5cf6;
+    --pink-glow: #ec4899;
+    --blue-glow: #3b82f6;
+}
+
+body {
+    background: var(--space-dark);
+    background-image: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.1) 0%, transparent 50%);
+    background-attachment: fixed;
+}
+
+/* Animated Stars Background */
+.stars-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.stars,
+.stars2,
+.stars3 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+}
+
+.stars {
+    animation: move-stars 50s linear infinite;
+    background-image: 
+        radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+        radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+        radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+        radial-gradient(2px 2px at 160px 30px, #ddd, transparent);
+    background-repeat: repeat;
+    background-size: 200px 100px;
+}
+
+.stars2 {
+    animation: move-stars 100s linear infinite;
+    background-image: 
+        radial-gradient(1px 1px at 40px 60px, #fff, transparent),
+        radial-gradient(1px 1px at 120px 10px, rgba(255,255,255,0.7), transparent),
+        radial-gradient(1px 1px at 160px 80px, #eee, transparent);
+    background-repeat: repeat;
+    background-size: 300px 200px;
+}
+
+.stars3 {
+    animation: move-stars 150s linear infinite;
+    background-image: 
+        radial-gradient(1px 1px at 60px 20px, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1px 1px at 100px 60px, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 140px 100px, #fff, transparent);
+    background-repeat: repeat;
+    background-size: 400px 300px;
+}
+
+@keyframes move-stars {
+    from { transform: translateY(0px); }
+    to { transform: translateY(-2000px); }
+}
+
+/* Custom Card Styling */
+.quest-card {
+    backdrop-filter: blur(10px);
+    background: rgba(26, 26, 46, 0.4);
+    transition: all 0.3s ease;
+}
+
+.quest-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
+}
+
+.feature-card {
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(139, 92, 246, 0.2);
+}
+
+/* Planet Styling */
+.planet {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.planet.completed {
+    animation: glow-green 2s ease-in-out infinite alternate;
+}
+
+.planet.current {
+    animation: glow-purple 1.5s ease-in-out infinite alternate;
+}
+
+.planet.unlocked:hover {
+    transform: scale(1.1);
+}
+
+@keyframes glow-green {
+    from { box-shadow: 0 0 20px rgba(34, 197, 94, 0.5); }
+    to { box-shadow: 0 0 30px rgba(34, 197, 94, 0.8); }
+}
+
+@keyframes glow-purple {
+    from { box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
+    to { box-shadow: 0 0 30px rgba(139, 92, 246, 0.8); }
+}
+
+/* Form Styling */
+input[type="text"],
+input[type="email"],
+textarea,
+select {
+    background: rgba(10, 10, 15, 0.5);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+textarea:focus,
+select:focus {
+    background: rgba(10, 10, 15, 0.7);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+}
+
+/* Radio Button Styling */
+input[type="radio"] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #8b5cf6;
+    border-radius: 50%;
+    background: transparent;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+input[type="radio"]:checked {
+    background: #8b5cf6;
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+}
+
+input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: white;
+}
+
+/* Button Animations */
+.btn-glow {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-glow:hover {
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
+}
+
+.btn-glow::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-glow:hover::before {
+    left: 100%;
+}
+
+/* Quiz Results Styling */
+.quiz-result-success {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1));
+    border: 1px solid rgba(34, 197, 94, 0.5);
+}
+
+.quiz-result-fail {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+    border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+/* Loading Animation */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .stars,
+    .stars2,
+    .stars3 {
+        background-size: 150px 100px, 200px 150px, 300px 200px;
+    }
+    
+    .planet {
+        width: 48px !important;
+        height: 48px !important;
+    }
+    
+    .quest-card {
+        margin: 10px;
+        padding: 20px;
+    }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(10, 10, 15, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #7c3aed, #db2777);
+}
+
+/* Prose Styling for Content */
+.prose-invert p {
+    margin-bottom: 1.25em;
+    line-height: 1.7;
+}
+
+.prose-invert h3 {
+    margin-top: 2em;
+    margin-bottom: 1em;
+    font-weight: 600;
+}
+
+/* Navigation Animation */
+nav {
+    transition: all 0.3s ease;
+}
+
+/* Success/Error Messages */
+.alert-success {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1));
+    border: 1px solid rgba(34, 197, 94, 0.5);
+    color: #86efac;
+}
+
+.alert-error {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: #fca5a5;
+}
+
+/* Floating Animation for Icons */
+.float-animation {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
