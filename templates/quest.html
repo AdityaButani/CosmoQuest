@@ -121,6 +121,10 @@
                         <h3 class="text-xl font-semibold mb-4 text-green-300 flex items-center">
                             <i class="fas fa-images mr-2"></i>
                             Visual Learning Aids
+                            <!-- Test button for debugging -->
+                            <button onclick="openImagePopup('https://via.placeholder.com/600x400?text=Test+Image', 'Test Image', 'Test Source')" class="ml-4 text-xs bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded">
+                                Test Popup
+                            </button>
                         </h3>
                         {% if quest_data.visual_suggestions and quest_data.visual_suggestions|length > 0 %}
                         <div class="grid grid-cols-1 gap-6">
@@ -146,21 +150,14 @@
                                 {% if visual is not string and visual.images and visual.images|length > 0 %}
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {% for image in visual.images %}
-                                    <div class="relative group">
+                                    <div class="relative group cursor-pointer" onclick="openImagePopup('{{ image.url }}', '{{ image.title|e }}', '{{ image.source|e }}')">
                                         <div class="bg-space-card/50 rounded-lg overflow-hidden border border-green-500/30 hover:border-green-400/50 transition-all duration-300">
                                             <img src="{{ image.url }}" 
                                                  alt="{{ image.title }}" 
-                                                 class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer hover:brightness-110"
+                                                 class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105 hover:brightness-110"
                                                  loading="lazy"
-                                                 onclick="openImagePopup('{{ image.url }}', '{{ image.title|e }}', '{{ image.source|e }}')"
                                                  onerror="this.parentElement.innerHTML='<div class=\'flex items-center justify-center h-48 text-gray-400\'><i class=\'fas fa-image-slash text-2xl\'></i><span class=\'ml-2\'>Image unavailable</span></div>'"
                                                  title="Click to view full size">
-                                            <!-- Click indicator overlay -->
-                                            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                                <div class="bg-white/90 rounded-full p-2 transform scale-0 group-hover:scale-100 transition-transform duration-300">
-                                                    <i class="fas fa-expand-arrows-alt text-gray-800 text-lg"></i>
-                                                </div>
-                                            </div>
                                             <div class="p-3 bg-gradient-to-t from-space-dark/80 to-transparent">
                                                 <p class="text-xs text-gray-300 font-medium truncate">{{ image.title }}</p>
                                                 {% if image.educational %}
@@ -169,6 +166,12 @@
                                                     <span class="text-xs text-green-300">Educational Source</span>
                                                 </div>
                                                 {% endif %}
+                                            </div>
+                                        </div>
+                                        <!-- Click indicator overlay -->
+                                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
+                                            <div class="bg-white/90 rounded-full p-2 transform scale-0 group-hover:scale-100 transition-transform duration-300">
+                                                <i class="fas fa-expand-arrows-alt text-gray-800 text-lg"></i>
                                             </div>
                                         </div>
                                     </div>

@@ -468,24 +468,40 @@ function autoSaveQuizProgress() {
 // Initialize auto-save
 autoSaveQuizProgress();
 
-// Global variables for popup functionality
-let currentImageUrl = '';
-let isDragging = false;
-let isResizing = false;
+// Global variables for popup functionality  
+window.currentImageUrl = '';
+window.isDragging = false;
+window.isResizing = false;
 let startX, startY, startWidth, startHeight;
 
 // Image popup functions
-function openImagePopup(imageUrl, title, source) {
-    currentImageUrl = imageUrl;
+window.openImagePopup = function(imageUrl, title, source) {
+    console.log('openImagePopup called with:', imageUrl, title, source);
+    window.currentImageUrl = imageUrl;
     
     // Set popup content
-    document.getElementById('imagePopupTitle').textContent = title || 'Visual Learning Aid';
-    document.getElementById('imagePopupSource').textContent = source || 'Educational Resource';
-    document.getElementById('imagePopupImg').src = imageUrl;
-    document.getElementById('imagePopupImg').alt = title || 'Visual Learning Aid';
+    const popupTitle = document.getElementById('imagePopupTitle');
+    const popupSource = document.getElementById('imagePopupSource');
+    const popupImg = document.getElementById('imagePopupImg');
+    
+    if (!popupTitle || !popupSource || !popupImg) {
+        console.error('Popup elements not found in DOM');
+        return;
+    }
+    
+    popupTitle.textContent = title || 'Visual Learning Aid';
+    popupSource.textContent = source || 'Educational Resource';
+    popupImg.src = imageUrl;
+    popupImg.alt = title || 'Visual Learning Aid';
     
     // Show popup
     const popup = document.getElementById('imagePopup');
+    if (!popup) {
+        console.error('Popup element not found in DOM');
+        return;
+    }
+    
+    console.log('Showing popup');
     popup.classList.remove('hidden');
     
     // Add smooth fade-in animation
@@ -505,7 +521,7 @@ function openImagePopup(imageUrl, title, source) {
     initializePopupResize();
 }
 
-function closeImagePopup() {
+window.closeImagePopup = function() {
     const popup = document.getElementById('imagePopup');
     
     // Add fade-out animation
@@ -530,9 +546,9 @@ function closeImagePopup() {
     }, 300);
 }
 
-function openOriginalImage() {
-    if (currentImageUrl) {
-        window.open(currentImageUrl, '_blank');
+window.openOriginalImage = function() {
+    if (window.currentImageUrl) {
+        window.open(window.currentImageUrl, '_blank');
     }
 }
 
