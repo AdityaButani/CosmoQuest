@@ -124,6 +124,9 @@ def submit_quiz():
         quest_num = int(request.form.get('quest_num', 0))
         answers = request.form.get('answers', '{}')
         
+        logging.info(f"Quiz submission for quest {quest_num}")
+        logging.info(f"Raw form data: {dict(request.form)}")
+        
         if quest_num < 2 or quest_num > 5:
             return jsonify({'error': 'Invalid quest number for quiz'}), 400
         
@@ -144,11 +147,20 @@ def submit_quiz():
                 if key.startswith('q') and key != 'quest_num':
                     user_answers[key] = value
         
+        logging.info(f"Parsed user answers: {user_answers}")
+        
         # Get quest data to check correct answers
         quest_key = f'quest_{quest_num}'
         quest_data = session.get(quest_key, {})
         
+        logging.info(f"Quest data found: {'yes' if quest_data else 'no'}")
+        if quest_data:
+            logging.info(f"Quiz in quest data: {'yes' if 'quiz' in quest_data else 'no'}")
+            if 'quiz' in quest_data:
+                logging.info(f"Quiz type: {quest_data['quiz'].get('type', 'unknown')}")
+        
         if 'quiz' not in quest_data:
+            logging.error(f"Quiz data not found for quest {quest_num}. Available session keys: {list(session.keys())}")
             return jsonify({'error': 'Quiz data not found'}), 400
         
         quiz_data = quest_data['quiz']
@@ -164,11 +176,16 @@ def submit_quiz():
             correct_matches = quiz_data.get('correct_matches', {})
             left_items = quiz_data.get('left_items', [])
             
+            logging.info(f"Matching quiz - left_items: {left_items}")
+            logging.info(f"Matching quiz - correct_matches: {correct_matches}")
+            
             total_questions = len(left_items)
             for i, left_item in enumerate(left_items):
                 question_key = f'q{i+1}'
                 user_answer = user_answers.get(question_key, '')
                 correct_answer = correct_matches.get(left_item, '')
+                
+                logging.info(f"Question {i+1}: '{left_item}' -> User: '{user_answer}' vs Correct: '{correct_answer}'")
                 
                 if str(user_answer).lower().strip() == str(correct_answer).lower().strip():
                     correct_count += 1
