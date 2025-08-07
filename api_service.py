@@ -78,7 +78,7 @@ def generate_quest_content(topic: str, quest_num: int, context: str = "") -> Opt
                 "title": "Deeper Understanding",
                 "description": "Advanced concepts and relationships",
                 "has_quiz": True,
-                "quiz_type": "matching",
+                "quiz_type": "multiple_choice",
                 "quiz_count": 5
             },
             4: {
@@ -118,9 +118,9 @@ Educational Requirements:
 Generate this exact JSON structure:
 {{
     "title": "Quest {quest_num}: {spec['title']}",
-    "content": "Write 200-250 words of educational content with clear structure. Use headings and bullet points for organization.",
-    "key_points": ["Core concept 1", "Key principle 2", "Main application 3"],
-    "fun_facts": ["Interesting fact about {topic}", "Real-world application"],
+    "content": "Write 250-300 words of comprehensive educational content with clear HTML structure. Format as: <h4>Introduction</h4><p>Engaging opening paragraph</p><h4>Key Concepts</h4><ul><li>Important concept 1 with explanation</li><li>Important concept 2 with explanation</li><li>Important concept 3 with explanation</li></ul><h4>How It Works</h4><p>Detailed process explanation with examples</p><h4>Real-World Applications</h4><ul><li>Practical application 1</li><li>Practical application 2</li></ul><h4>Why It Matters</h4><p>Significance and impact on the field</p>. Use proper HTML tags for structure.",
+    "key_points": ["Specific, actionable learning point with details", "Concrete concept with real example", "Practical application or skill explanation", "Important relationship or principle", "Key takeaway connecting to broader field"],
+    "fun_facts": ["Surprising, topic-specific fact with numbers or details", "Fascinating real-world example or historical discovery", "Unexpected connection to everyday life or other fields"],
     "visual_suggestions": ["Detailed flowchart showing [specific process/concept]", "Diagram illustrating [specific relationship/structure]"],
     "resources": [
         {{"title": "Khan Academy - {topic}", "url": "https://www.khanacademy.org/search?search_again=1&search_query={topic.replace(' ', '+')}", "description": "Interactive lessons and practice exercises"}},

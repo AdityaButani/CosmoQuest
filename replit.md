@@ -23,9 +23,11 @@ Preferred communication style: Simple, everyday language.
 - **Error Handling**: Comprehensive logging and graceful error responses for API failures
 
 ### Data Storage Solutions
-- **Primary Storage**: Session-based storage (no persistent database)
-- **State Management**: Flask sessions store current quest progress, completed quests, topic context, and generated content
-- **Rationale**: Simplified architecture avoiding database complexity for MVP, suitable for stateless quest generation
+- **Primary Storage**: Server-side quest data cache with session-based state management
+- **Quest Data Cache**: In-memory storage for large quest content to prevent session cookie size limits
+- **Session Management**: Flask sessions store minimal data (topic, progress, unique session ID)
+- **Automatic Regeneration**: Quest data regenerated automatically if missing from cache
+- **Rationale**: Hybrid approach prevents session cookie overflow while maintaining stateless architecture
 
 ### AI Integration Architecture
 - **Primary AI Service**: Groq API using LLaMA 3.3 70B model for quest content generation
@@ -34,10 +36,13 @@ Preferred communication style: Simple, everyday language.
 - **Fallback Strategy**: Graceful degradation when API services are unavailable
 
 ### Quest Flow System
-- **Structured Learning Path**: 5-part quest system with progressive difficulty
-- **Quiz Integration**: Automated quiz generation after quests 2-5 with varying question types
+- **Structured Learning Path**: 5-part quest system with progressive difficulty and complexity
+- **Educational Content**: 250-300 word comprehensive explanations with HTML structure (headings, subheadings, bullet points)
+- **Progressive Complexity**: Each quest builds upon previous knowledge with increasing depth and sophistication
+- **Quiz Integration**: Quest 2 (True/False), Quest 3 (Multiple Choice), Quest 4-5 (Mixed formats)
+- **Server-side Storage**: Quest data cached server-side to prevent session cookie size limits
 - **Progress Tracking**: Visual progress indicators and completion status management
-- **Content Types**: Mix of explanations, fun facts, visual elements, and interactive assessments
+- **Content Types**: Mix of detailed explanations, fun facts, visual elements, and interactive assessments
 
 ## External Dependencies
 
