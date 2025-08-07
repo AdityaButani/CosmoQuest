@@ -99,24 +99,32 @@ def generate_quest_content(topic: str, quest_num: int, context: str = "") -> Opt
         
         spec = quest_specs[quest_num]
         
-        # Construct the prompt
-        system_prompt = f"""You are an expert educational content creator. Create engaging, accurate, and well-structured learning content for Quest {quest_num} of 5 about "{topic}".
+        # Construct the prompt with better educational guidance
+        system_prompt = f"""You are an expert educational content creator and teacher. Create comprehensive, engaging, and academically rigorous learning content for Quest {quest_num} of 5 about "{topic}".
 
 Context from web search: {context}
 
-Quest {quest_num}: {spec['title']}
-{spec['description']}
+Quest {quest_num}: {spec['title']} - {spec['description']}
 
-Generate a JSON response with the following structure:
+IMPORTANT: You must respond with ONLY valid JSON. No markdown formatting, no explanations, just pure JSON.
+
+Educational Requirements:
+- Content must be 250-300 words minimum with clear explanations, examples, and analogies
+- Include real-world applications and connections to make learning meaningful
+- Use engaging language that builds excitement about the topic
+- Progress logically from previous quest knowledge (if quest > 1)
+- Make complex concepts accessible through step-by-step explanations
+
+Generate this exact JSON structure:
 {{
     "title": "Quest {quest_num}: {spec['title']}",
-    "content": "Detailed educational content (2-3 paragraphs, engaging and informative)",
-    "key_points": ["Point 1", "Point 2", "Point 3", "Point 4", "Point 5"],
-    "fun_facts": ["Interesting fact 1", "Interesting fact 2", "Interesting fact 3"],
-    "visual_suggestions": ["Description of helpful diagram/chart 1", "Description of helpful visual 2"],
+    "content": "Write 250-300 words of comprehensive educational content. Start with an engaging hook, provide clear explanations with examples and analogies, discuss real-world applications, and connect to broader concepts. Use varied sentence structures and maintain academic rigor while being accessible.",
+    "key_points": ["Specific, actionable learning point 1", "Concrete concept with example 2", "Practical application or skill 3", "Important relationship or principle 4", "Key takeaway or connection 5"],
+    "fun_facts": ["Surprising, topic-specific fact with numbers/details", "Fascinating real-world example or discovery", "Unexpected connection or application"],
+    "visual_suggestions": ["Detailed flowchart showing [specific process/concept]", "Diagram illustrating [specific relationship/structure]"],
     "resources": [
-        {{"title": "Resource 1", "url": "https://example1.com", "description": "Brief description"}},
-        {{"title": "Resource 2", "url": "https://example2.com", "description": "Brief description"}}
+        {{"title": "Khan Academy - {topic}", "url": "https://www.khanacademy.org/search?search_again=1&search_query={topic.replace(' ', '+')}", "description": "Interactive lessons and practice exercises"}},
+        {{"title": "Wikipedia - {topic}", "url": "https://en.wikipedia.org/wiki/{topic.replace(' ', '_')}", "description": "Comprehensive reference and additional details"}}
     ]"""
 
         if spec["has_quiz"]:
@@ -124,13 +132,13 @@ Generate a JSON response with the following structure:
                 system_prompt += f""",
     "quiz": {{
         "type": "true_false",
-        "instructions": "Select True or False for each statement",
+        "instructions": "Select True or False for each statement about {topic}",
         "questions": [
-            {{"id": "q1", "question": "Statement 1", "type": "true_false"}},
-            {{"id": "q2", "question": "Statement 2", "type": "true_false"}},
-            {{"id": "q3", "question": "Statement 3", "type": "true_false"}},
-            {{"id": "q4", "question": "Statement 4", "type": "true_false"}},
-            {{"id": "q5", "question": "Statement 5", "type": "true_false"}}
+            {{"id": "q1", "question": "Create a specific true/false statement testing key concept from the content above", "type": "true_false"}},
+            {{"id": "q2", "question": "Create another specific true/false statement testing different concept", "type": "true_false"}},
+            {{"id": "q3", "question": "Create a true/false statement about a real-world application", "type": "true_false"}},
+            {{"id": "q4", "question": "Create a true/false statement testing understanding of process/mechanism", "type": "true_false"}},
+            {{"id": "q5", "question": "Create a true/false statement about importance/significance", "type": "true_false"}}
         ],
         "correct_answers": {{"q1": "true", "q2": "false", "q3": "true", "q4": "false", "q5": "true"}}
     }}"""
@@ -138,51 +146,51 @@ Generate a JSON response with the following structure:
                 system_prompt += f""",
     "quiz": {{
         "type": "matching",
-        "instructions": "Match each term with its correct definition",
+        "instructions": "Match each {topic} term with its correct definition",
         "questions": [
-            {{"id": "q1", "question": "Term 1", "options": ["Definition A", "Definition B", "Definition C", "Definition D"], "type": "matching"}},
-            {{"id": "q2", "question": "Term 2", "options": ["Definition A", "Definition B", "Definition C", "Definition D"], "type": "matching"}},
-            {{"id": "q3", "question": "Term 3", "options": ["Definition A", "Definition B", "Definition C", "Definition D"], "type": "matching"}},
-            {{"id": "q4", "question": "Term 4", "options": ["Definition A", "Definition B", "Definition C", "Definition D"], "type": "matching"}},
-            {{"id": "q5", "question": "Term 5", "options": ["Definition A", "Definition B", "Definition C", "Definition D"], "type": "matching"}}
+            {{"id": "q1", "question": "Important term 1 from content", "options": ["Correct definition for term 1", "Definition for term 2", "Definition for term 3", "Distractor definition"], "type": "matching"}},
+            {{"id": "q2", "question": "Important term 2 from content", "options": ["Correct definition for term 2", "Definition for term 1", "Definition for term 3", "Distractor definition"], "type": "matching"}},
+            {{"id": "q3", "question": "Important term 3 from content", "options": ["Correct definition for term 3", "Definition for term 1", "Definition for term 2", "Distractor definition"], "type": "matching"}},
+            {{"id": "q4", "question": "Important term 4 from content", "options": ["Correct definition for term 4", "Definition for term 1", "Definition for term 2", "Distractor definition"], "type": "matching"}},
+            {{"id": "q5", "question": "Important term 5 from content", "options": ["Correct definition for term 5", "Definition for term 1", "Definition for term 2", "Distractor definition"], "type": "matching"}}
         ],
-        "correct_answers": {{"q1": "Definition A", "q2": "Definition B", "q3": "Definition C", "q4": "Definition D", "q5": "Definition A"}}
+        "correct_answers": {{"q1": "Correct definition for term 1", "q2": "Correct definition for term 2", "q3": "Correct definition for term 3", "q4": "Correct definition for term 4", "q5": "Correct definition for term 5"}}
     }}"""
             elif spec["quiz_type"] == "multiple_choice":
                 system_prompt += f""",
     "quiz": {{
         "type": "multiple_choice",
-        "instructions": "Select the best answer for each question",
+        "instructions": "Select the best answer for each question about {topic}",
         "questions": [
-            {{"id": "q1", "question": "Question 1", "options": ["Option A", "Option B", "Option C", "Option D"], "type": "multiple_choice"}},
-            {{"id": "q2", "question": "Question 2", "options": ["Option A", "Option B", "Option C", "Option D"], "type": "multiple_choice"}},
-            {{"id": "q3", "question": "Question 3", "options": ["Option A", "Option B", "Option C", "Option D"], "type": "multiple_choice"}},
-            {{"id": "q4", "question": "Question 4", "options": ["Option A", "Option B", "Option C", "Option D"], "type": "multiple_choice"}},
-            {{"id": "q5", "question": "Question 5", "options": ["Option A", "Option B", "Option C", "Option D"], "type": "multiple_choice"}}
+            {{"id": "q1", "question": "Create specific question testing main concept from content", "options": ["Correct answer", "Plausible distractor 1", "Plausible distractor 2", "Plausible distractor 3"], "type": "multiple_choice"}},
+            {{"id": "q2", "question": "Create question about process/mechanism explained in content", "options": ["Correct answer", "Plausible distractor 1", "Plausible distractor 2", "Plausible distractor 3"], "type": "multiple_choice"}},
+            {{"id": "q3", "question": "Create question about real-world application mentioned", "options": ["Correct answer", "Plausible distractor 1", "Plausible distractor 2", "Plausible distractor 3"], "type": "multiple_choice"}},
+            {{"id": "q4", "question": "Create question testing deeper understanding/analysis", "options": ["Correct answer", "Plausible distractor 1", "Plausible distractor 2", "Plausible distractor 3"], "type": "multiple_choice"}},
+            {{"id": "q5", "question": "Create question about significance/importance discussed", "options": ["Correct answer", "Plausible distractor 1", "Plausible distractor 2", "Plausible distractor 3"], "type": "multiple_choice"}}
         ],
-        "correct_answers": {{"q1": "Option A", "q2": "Option B", "q3": "Option C", "q4": "Option D", "q5": "Option A"}}
+        "correct_answers": {{"q1": "Correct answer", "q2": "Correct answer", "q3": "Correct answer", "q4": "Correct answer", "q5": "Correct answer"}}
     }}"""
             elif spec["quiz_type"] == "mixed":
                 system_prompt += f""",
     "quiz": {{
         "type": "mixed",
-        "instructions": "Answer all questions - mix of True/False, Matching, and Multiple Choice",
+        "instructions": "Answer all questions about {topic} - mix of True/False, Matching, and Multiple Choice",
         "questions": [
-            {{"id": "q1", "question": "True/False Statement 1", "type": "true_false"}},
-            {{"id": "q2", "question": "True/False Statement 2", "type": "true_false"}},
-            {{"id": "q3", "question": "True/False Statement 3", "type": "true_false"}},
-            {{"id": "q4", "question": "Match Term 1", "options": ["Definition A", "Definition B", "Definition C"], "type": "matching"}},
-            {{"id": "q5", "question": "Match Term 2", "options": ["Definition A", "Definition B", "Definition C"], "type": "matching"}},
-            {{"id": "q6", "question": "Match Term 3", "options": ["Definition A", "Definition B", "Definition C"], "type": "matching"}},
-            {{"id": "q7", "question": "MCQ Question 1", "options": ["Option A", "Option B", "Option C", "Option D"], "type": "multiple_choice"}},
-            {{"id": "q8", "question": "MCQ Question 2", "options": ["Option A", "Option B", "Option C", "Option D"], "type": "multiple_choice"}},
-            {{"id": "q9", "question": "MCQ Question 3", "options": ["Option A", "Option B", "Option C", "Option D"], "type": "multiple_choice"}},
-            {{"id": "q10", "question": "MCQ Question 4", "options": ["Option A", "Option B", "Option C", "Option D"], "type": "multiple_choice"}}
+            {{"id": "q1", "question": "Create specific true/false statement about key concept", "type": "true_false"}},
+            {{"id": "q2", "question": "Create specific true/false statement about process/mechanism", "type": "true_false"}},
+            {{"id": "q3", "question": "Create specific true/false statement about application", "type": "true_false"}},
+            {{"id": "q4", "question": "Important term from content", "options": ["Correct definition", "Distractor 1", "Distractor 2"], "type": "matching"}},
+            {{"id": "q5", "question": "Another important term", "options": ["Correct definition", "Distractor 1", "Distractor 2"], "type": "matching"}},
+            {{"id": "q6", "question": "Third important term", "options": ["Correct definition", "Distractor 1", "Distractor 2"], "type": "matching"}},
+            {{"id": "q7", "question": "Create MCQ about main concept", "options": ["Correct answer", "Distractor 1", "Distractor 2", "Distractor 3"], "type": "multiple_choice"}},
+            {{"id": "q8", "question": "Create MCQ about practical application", "options": ["Correct answer", "Distractor 1", "Distractor 2", "Distractor 3"], "type": "multiple_choice"}},
+            {{"id": "q9", "question": "Create MCQ about significance/impact", "options": ["Correct answer", "Distractor 1", "Distractor 2", "Distractor 3"], "type": "multiple_choice"}},
+            {{"id": "q10", "question": "Create comprehensive MCQ testing synthesis", "options": ["Correct answer", "Distractor 1", "Distractor 2", "Distractor 3"], "type": "multiple_choice"}}
         ],
-        "correct_answers": {{"q1": "true", "q2": "false", "q3": "true", "q4": "Definition A", "q5": "Definition B", "q6": "Definition C", "q7": "Option A", "q8": "Option B", "q9": "Option C", "q10": "Option D"}}
+        "correct_answers": {{"q1": "true", "q2": "false", "q3": "true", "q4": "Correct definition", "q5": "Correct definition", "q6": "Correct definition", "q7": "Correct answer", "q8": "Correct answer", "q9": "Correct answer", "q10": "Correct answer"}}
     }}"""
 
-        system_prompt += "\n}\n\nEnsure all content is accurate, educational, and appropriate for the quest level. Make the content engaging and progressive."
+        system_prompt += "\n}\n\nEnsure all content is accurate, educational, and appropriate for the quest level. Make the content engaging and progressive. Replace all placeholder text with actual topic-specific content."
 
         headers = {
             'Authorization': f'Bearer {GROQ_API_KEY}',
@@ -213,13 +221,33 @@ Generate a JSON response with the following structure:
             data = response.json()
             content = data['choices'][0]['message']['content'].strip()
             
-            # Try to parse JSON response
+            # Try to parse JSON response with better error handling
             try:
+                # Clean up the response - remove any markdown formatting
+                content = content.strip()
+                if content.startswith('```json'):
+                    content = content[7:]
+                if content.endswith('```'):
+                    content = content[:-3]
+                content = content.strip()
+                
                 quest_data = json.loads(content)
+                
+                # Validate required fields
+                required_fields = ['title', 'content', 'key_points', 'fun_facts', 'visual_suggestions', 'resources']
+                if spec.get('has_quiz'):
+                    required_fields.append('quiz')
+                
+                for field in required_fields:
+                    if field not in quest_data:
+                        logging.error(f"Missing required field '{field}' in quest response")
+                        return create_fallback_quest_content(topic, quest_num, spec)
+                
                 return quest_data
-            except json.JSONDecodeError:
-                # If JSON parsing fails, create a basic structure
-                logging.error(f"Failed to parse JSON from Groq response for quest {quest_num}")
+                
+            except json.JSONDecodeError as e:
+                logging.error(f"Failed to parse JSON from Groq response for quest {quest_num}: {str(e)}")
+                logging.error(f"Raw response content: {content[:500]}...")
                 return create_fallback_quest_content(topic, quest_num, spec)
         else:
             logging.error(f"Groq API error: {response.status_code} - {response.text}")
@@ -227,32 +255,42 @@ Generate a JSON response with the following structure:
             
     except Exception as e:
         logging.error(f"Error generating quest content: {str(e)}")
-        return create_fallback_quest_content(topic, quest_num, quest_specs[quest_num])
+        return create_fallback_quest_content(topic, quest_num, spec)
 
 def create_fallback_quest_content(topic: str, quest_num: int, spec: Dict) -> Dict[str, Any]:
-    """Create fallback content when API fails"""
+    """Create educational fallback content when AI API fails"""
+    
+    # Create topic-specific content based on quest level
+    quest_descriptions = {
+        1: f"Welcome to your learning journey about {topic}! This introductory quest will establish the foundational knowledge you need to understand this fascinating subject. We'll start with basic definitions, explore why this topic matters, and set the stage for deeper learning in subsequent quests.",
+        2: f"Now that you have a foundation, let's dive deeper into the fundamental concepts of {topic}. This quest will expand your understanding by exploring key principles, examining how different components work together, and introducing important terminology that experts use in this field.",
+        3: f"It's time to explore the more sophisticated aspects of {topic}. In this quest, we'll examine complex relationships, analyze interconnected systems, and understand how advanced concepts build upon the basics you've already learned.",
+        4: f"Let's see {topic} in action! This practical quest focuses on real-world applications, case studies, and examples of how this knowledge is used to solve problems and create innovations in various industries and contexts.",
+        5: f"Congratulations on reaching the final quest! Here we'll integrate everything you've learned about {topic}, explore cutting-edge developments, and help you master the complete picture of this subject. You'll leave with comprehensive understanding and practical knowledge."
+    }
+    
     content = {
         "title": f"Quest {quest_num}: {spec['title']}",
-        "content": f"Welcome to Quest {quest_num} about {topic}. This quest focuses on {spec['description'].lower()}. We'll explore the key concepts, understand the fundamentals, and build your knowledge step by step.",
+        "content": quest_descriptions.get(quest_num, f"Explore the fascinating world of {topic} in this comprehensive quest. {spec['description']}"),
         "key_points": [
-            f"Understanding {topic} basics",
-            f"Key concepts in {topic}",
-            f"Important principles of {topic}",
-            f"Applications of {topic}",
-            f"Advanced aspects of {topic}"
+            f"Core principles and definitions of {topic}",
+            f"Historical development and significance of {topic}",
+            f"Key components and how they interact",
+            f"Real-world applications and examples",
+            f"Current research and future directions"
         ],
         "fun_facts": [
-            f"Did you know that {topic} has fascinating applications?",
-            f"The study of {topic} reveals interesting patterns.",
-            f"Experts in {topic} continue to make new discoveries."
+            f"Research in {topic} has led to breakthrough discoveries that changed our understanding",
+            f"The principles of {topic} are applied in surprising ways across different industries",
+            f"Scientists continue to make exciting new discoveries in {topic} every year"
         ],
         "visual_suggestions": [
-            f"Conceptual diagram showing {topic} overview",
-            f"Flowchart illustrating {topic} processes"
+            f"Interactive diagram showing the key components of {topic}",
+            f"Timeline visualization of major developments in {topic}"
         ],
         "resources": [
-            {"title": "Educational Resource", "url": "https://khan-academy.org", "description": "Comprehensive learning materials"},
-            {"title": "Reference Material", "url": "https://wikipedia.org", "description": "Detailed reference information"}
+            {"title": f"Khan Academy - {topic}", "url": f"https://www.khanacademy.org/search?search_again=1&search_query={topic.replace(' ', '+')}", "description": "Interactive lessons and practice exercises"},
+            {"title": f"Wikipedia - {topic}", "url": f"https://en.wikipedia.org/wiki/{topic.replace(' ', '_')}", "description": "Comprehensive reference and additional details"}
         ]
     }
     
