@@ -91,6 +91,14 @@ def quest_page(quest_num):
     
     quest_data = quest_data_cache[quest_session_id].get(quest_key, {})
     
+    # Debug logging for visual suggestions
+    logging.info(f"Quest {quest_num} data keys: {list(quest_data.keys())}")
+    if 'visual_suggestions' in quest_data:
+        logging.info(f"Visual suggestions count: {len(quest_data['visual_suggestions'])}")
+        logging.info(f"Visual suggestions: {quest_data['visual_suggestions']}")
+    else:
+        logging.warning(f"No visual_suggestions in quest {quest_num} data")
+    
     return render_template('quest.html', 
                          quest_num=quest_num,
                          quest_data=quest_data,

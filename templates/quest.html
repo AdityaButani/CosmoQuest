@@ -117,12 +117,12 @@
                     {% endif %}
 
                     <!-- Visual Suggestions -->
-                    {% if quest_data.visual_suggestions %}
                     <div class="visual-suggestions mb-8">
                         <h3 class="text-xl font-semibold mb-4 text-green-300 flex items-center">
                             <i class="fas fa-eye mr-2"></i>
                             Visual Learning Aids
                         </h3>
+                        {% if quest_data.visual_suggestions %}
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {% for visual in quest_data.visual_suggestions %}
                             <div class="bg-space-dark/50 rounded-xl p-4 border border-green-500/30">
@@ -133,8 +133,15 @@
                             </div>
                             {% endfor %}
                         </div>
+                        {% else %}
+                        <div class="bg-space-dark/50 rounded-xl p-4 border border-green-500/30">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-info-circle text-yellow-400"></i>
+                                <span class="text-gray-300 text-sm">Visual learning aids are being generated... Please refresh the page if they don't appear.</span>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
 
                     <!-- Quiz Section -->
                     {% if quest_data.quiz %}
