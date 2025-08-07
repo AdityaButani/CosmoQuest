@@ -10,6 +10,73 @@ SERPER_API_KEY = os.getenv("SERPER_API_KEY", "")
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 SERPER_API_URL = "https://google.serper.dev/search"
+SERPER_IMAGES_URL = "https://google.serper.dev/images"
+
+def search_images_for_visual_aid(query: str, topic: str) -> list:
+    """Search for educational images using SerperAPI"""
+    try:
+        if not SERPER_API_KEY:
+            logging.warning("SERPER_API_KEY not found, skipping image search")
+            return []
+        
+        headers = {
+            'X-API-KEY': SERPER_API_KEY,
+            'Content-Type': 'application/json'
+        }
+        
+        # Create educational-focused search query
+        search_query = f"{topic} {query} educational diagram illustration"
+        
+        payload = {
+            'q': search_query,
+            'num': 6,  # Get more images to filter better ones
+            'safe': 'active'  # Ensure safe content for educational use
+        }
+        
+        response = requests.post(SERPER_IMAGES_URL, headers=headers, json=payload, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            images = []
+            
+            if 'images' in data:
+                for img in data['images'][:3]:  # Top 3 relevant images
+                    if 'imageUrl' in img and 'title' in img:
+                        # Filter for educational and appropriate images
+                        title = img.get('title', '').lower()
+                        
+                        # Skip inappropriate or non-educational content
+                        if any(skip_word in title for skip_word in ['meme', 'funny', 'joke', 'cartoon']):
+                            continue
+                            
+                        # Prefer educational sources
+                        source = img.get('source', '').lower()
+                        is_educational = any(edu_source in source for edu_source in [
+                            'wikipedia', 'edu', 'academic', 'university', 'britannica', 
+                            'khan', 'coursera', 'edx', 'mit', 'stanford'
+                        ])
+                        
+                        images.append({
+                            'url': img['imageUrl'],
+                            'title': img.get('title', query),
+                            'source': img.get('source', 'Educational Resource'),
+                            'educational': is_educational
+                        })
+                        
+                        if len(images) >= 2:  # Limit to 2 images per visual aid
+                            break
+            
+            # Sort by educational value
+            images.sort(key=lambda x: x['educational'], reverse=True)
+            return images[:2]  # Return top 2 images
+            
+        else:
+            logging.error(f"SerperAPI Images error: {response.status_code}")
+            return []
+            
+    except Exception as e:
+        logging.error(f"Error searching for images: {str(e)}")
+        return []
 
 def search_topic_context(topic: str) -> str:
     """Search for additional context about the topic using SerperAPI"""
@@ -52,6 +119,42 @@ def search_topic_context(topic: str) -> str:
     except Exception as e:
         logging.error(f"Error searching topic context: {str(e)}")
         return f"Learn about {topic}"
+
+def enrich_visual_suggestions_with_images(quest_data: Dict[str, Any], topic: str) -> Dict[str, Any]:
+    """Enrich visual suggestions with actual images from SerperAPI"""
+    try:
+        if 'visual_suggestions' not in quest_data or not quest_data['visual_suggestions']:
+            return quest_data
+        
+        enriched_suggestions = []
+        
+        for suggestion in quest_data['visual_suggestions']:
+            # Create an enriched visual suggestion with images
+            enriched_suggestion = {
+                'description': suggestion,
+                'images': []
+            }
+            
+            # Search for images related to this visual suggestion
+            images = search_images_for_visual_aid(suggestion, topic)
+            
+            if images:
+                enriched_suggestion['images'] = images
+                logging.info(f"Found {len(images)} images for visual suggestion: {suggestion}")
+            else:
+                logging.warning(f"No images found for visual suggestion: {suggestion}")
+            
+            enriched_suggestions.append(enriched_suggestion)
+        
+        # Replace the simple text suggestions with enriched ones
+        quest_data['visual_suggestions'] = enriched_suggestions
+        
+        return quest_data
+        
+    except Exception as e:
+        logging.error(f"Error enriching visual suggestions with images: {str(e)}")
+        # Return original quest_data if enrichment fails
+        return quest_data
 
 def generate_quest_content(topic: str, quest_num: int, context: str = "") -> Optional[Dict[str, Any]]:
     """Generate quest content using Groq API"""
@@ -241,6 +344,9 @@ Generate this exact JSON structure with content focused ONLY on {spec['content_f
                         logging.error(f"Missing required field '{field}' in quest response")
                         return create_fallback_quest_content(topic, quest_num, spec)
                 
+                # Enrich visual suggestions with actual images
+                quest_data = enrich_visual_suggestions_with_images(quest_data, topic)
+                
                 return quest_data
                 
             except json.JSONDecodeError as e:
@@ -253,7 +359,16 @@ Generate this exact JSON structure with content focused ONLY on {spec['content_f
             
     except Exception as e:
         logging.error(f"Error generating quest content: {str(e)}")
-        return create_fallback_quest_content(topic, quest_num, spec)
+        # Use quest specs for fallback
+        quest_specs = {
+            1: {"title": "Foundations & Core Principles", "has_quiz": False},
+            2: {"title": "Mechanisms & Processes", "has_quiz": True, "quiz_type": "true_false"},
+            3: {"title": "Advanced Systems & Interactions", "has_quiz": True, "quiz_type": "matching"},
+            4: {"title": "Real-World Applications & Impact", "has_quiz": True, "quiz_type": "multiple_choice"},
+            5: {"title": "Innovations & Future Directions", "has_quiz": True, "quiz_type": "mixed"}
+        }
+        fallback_spec = quest_specs.get(quest_num, {"title": "Learning Quest", "has_quiz": False})
+        return create_fallback_quest_content(topic, quest_num, fallback_spec)
 
 def create_fallback_quest_content(topic: str, quest_num: int, spec: Dict) -> Dict[str, Any]:
     """Create educational fallback content when AI API fails"""
@@ -283,8 +398,14 @@ def create_fallback_quest_content(topic: str, quest_num: int, spec: Dict) -> Dic
             f"Scientists continue to make exciting new discoveries in {topic} every year"
         ],
         "visual_suggestions": [
-            f"Interactive diagram showing the key components of {topic}",
-            f"Timeline visualization of major developments in {topic}"
+            {
+                "description": f"Interactive diagram showing the key components of {topic}",
+                "images": []
+            },
+            {
+                "description": f"Timeline visualization of major developments in {topic}",
+                "images": []
+            }
         ],
         "resources": [
             {"title": f"Khan Academy - {topic}", "url": f"https://www.khanacademy.org/search?search_again=1&search_query={topic.replace(' ', '+')}", "description": "Interactive lessons and practice exercises"},
@@ -294,6 +415,9 @@ def create_fallback_quest_content(topic: str, quest_num: int, spec: Dict) -> Dic
     
     if spec.get("has_quiz"):
         content["quiz"] = create_fallback_quiz(topic, spec)
+    
+    # Enrich the fallback visual suggestions with images too
+    content = enrich_visual_suggestions_with_images(content, topic)
     
     return content
 

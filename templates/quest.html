@@ -119,19 +119,61 @@
                     <!-- Visual Learning Aids - Always Visible -->
                     <div class="visual-learning-section mb-8 bg-gradient-to-br from-green-900/20 to-emerald-900/20 rounded-2xl p-6 border border-green-500/30">
                         <h3 class="text-xl font-semibold mb-4 text-green-300 flex items-center">
-                            <i class="fas fa-eye mr-2"></i>
+                            <i class="fas fa-images mr-2"></i>
                             Visual Learning Aids
                         </h3>
                         {% if quest_data.visual_suggestions and quest_data.visual_suggestions|length > 0 %}
-                        <div class="grid grid-cols-1 gap-4">
+                        <div class="grid grid-cols-1 gap-6">
                             {% for visual in quest_data.visual_suggestions %}
                             <div class="bg-space-dark/30 rounded-xl p-4 border border-green-500/20 hover:border-green-400/40 transition-all duration-300 shadow-lg">
-                                <div class="flex items-start space-x-3">
-                                    <i class="fas fa-chart-line text-green-400 mt-1 flex-shrink-0"></i>
-                                    <div class="flex-1">
-                                        <span class="text-gray-200 text-sm leading-relaxed block">{{ visual }}</span>
+                                <!-- Description -->
+                                <div class="mb-4">
+                                    <div class="flex items-start space-x-3">
+                                        <i class="fas fa-lightbulb text-green-400 mt-1 flex-shrink-0"></i>
+                                        <div class="flex-1">
+                                            {% if visual is string %}
+                                            <!-- Handle legacy format (just text) -->
+                                            <span class="text-gray-200 text-sm leading-relaxed block">{{ visual }}</span>
+                                            {% else %}
+                                            <!-- Handle new format (object with description and images) -->
+                                            <span class="text-gray-200 text-sm leading-relaxed block">{{ visual.description }}</span>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
+                                
+                                <!-- Images -->
+                                {% if visual is not string and visual.images and visual.images|length > 0 %}
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {% for image in visual.images %}
+                                    <div class="relative group">
+                                        <div class="bg-space-card/50 rounded-lg overflow-hidden border border-green-500/30 hover:border-green-400/50 transition-all duration-300">
+                                            <img src="{{ image.url }}" 
+                                                 alt="{{ image.title }}" 
+                                                 class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                                                 loading="lazy"
+                                                 onerror="this.parentElement.innerHTML='<div class=\'flex items-center justify-center h-48 text-gray-400\'><i class=\'fas fa-image-slash text-2xl\'></i><span class=\'ml-2\'>Image unavailable</span></div>'">
+                                            <div class="p-3 bg-gradient-to-t from-space-dark/80 to-transparent">
+                                                <p class="text-xs text-gray-300 font-medium truncate">{{ image.title }}</p>
+                                                {% if image.educational %}
+                                                <div class="flex items-center mt-1">
+                                                    <i class="fas fa-graduation-cap text-green-400 text-xs mr-1"></i>
+                                                    <span class="text-xs text-green-300">Educational Source</span>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% elif visual is not string and (not visual.images or visual.images|length == 0) %}
+                                <div class="bg-yellow-900/20 rounded-lg p-3 border border-yellow-500/30 mt-3">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-search text-yellow-400 text-sm"></i>
+                                        <span class="text-yellow-200 text-xs">Searching for relevant images...</span>
+                                    </div>
+                                </div>
+                                {% endif %}
                             </div>
                             {% endfor %}
                         </div>
