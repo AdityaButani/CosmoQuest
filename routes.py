@@ -127,11 +127,22 @@ def submit_quiz():
         if quest_num < 2 or quest_num > 5:
             return jsonify({'error': 'Invalid quest number for quiz'}), 400
         
-        # Parse answers
+        # Parse answers - handle both JSON string and direct form data
         try:
-            user_answers = json.loads(answers)
+            if answers and answers != '{}':
+                user_answers = json.loads(answers)
+            else:
+                # Fallback: collect answers directly from form data
+                user_answers = {}
+                for key, value in request.form.items():
+                    if key.startswith('q') and key != 'quest_num':
+                        user_answers[key] = value
         except json.JSONDecodeError:
-            return jsonify({'error': 'Invalid answer format'}), 400
+            # Fallback: collect answers directly from form data
+            user_answers = {}
+            for key, value in request.form.items():
+                if key.startswith('q') and key != 'quest_num':
+                    user_answers[key] = value
         
         # Get quest data to check correct answers
         quest_key = f'quest_{quest_num}'
@@ -143,14 +154,31 @@ def submit_quiz():
         quiz_data = quest_data['quiz']
         correct_answers = quiz_data.get('correct_answers', {})
         
-        # Calculate score
-        total_questions = len(correct_answers)
+        # Handle different quiz formats
+        quiz_type = quiz_data.get('type', 'regular')
+        total_questions = 0
         correct_count = 0
         
-        for q_id, correct_answer in correct_answers.items():
-            user_answer = user_answers.get(q_id, '')
-            if str(user_answer).lower().strip() == str(correct_answer).lower().strip():
-                correct_count += 1
+        if quiz_type == 'matching' and 'correct_matches' in quiz_data:
+            # New matching format with left_items and right_items
+            correct_matches = quiz_data.get('correct_matches', {})
+            left_items = quiz_data.get('left_items', [])
+            
+            total_questions = len(left_items)
+            for i, left_item in enumerate(left_items):
+                question_key = f'q{i+1}'
+                user_answer = user_answers.get(question_key, '')
+                correct_answer = correct_matches.get(left_item, '')
+                
+                if str(user_answer).lower().strip() == str(correct_answer).lower().strip():
+                    correct_count += 1
+        else:
+            # Regular quiz format
+            total_questions = len(correct_answers)
+            for q_id, correct_answer in correct_answers.items():
+                user_answer = user_answers.get(q_id, '')
+                if str(user_answer).lower().strip() == str(correct_answer).lower().strip():
+                    correct_count += 1
         
         score_percentage = (correct_count / total_questions * 100) if total_questions > 0 else 0
         

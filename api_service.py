@@ -118,7 +118,7 @@ Educational Requirements:
 Generate this exact JSON structure:
 {{
     "title": "Quest {quest_num}: {spec['title']}",
-    "content": "Write 250-300 words of comprehensive educational content. Start with an engaging hook, provide clear explanations with examples and analogies, discuss real-world applications, and connect to broader concepts. Use varied sentence structures and maintain academic rigor while being accessible.",
+    "content": "Write 250-300 words of comprehensive educational content with clear HTML structure. Format as: <h4>Introduction</h4><p>Engaging opening paragraph</p><h4>Key Concepts</h4><ul><li>Important point 1</li><li>Important point 2</li></ul><h4>How It Works</h4><p>Process explanation</p><h4>Real-World Applications</h4><ul><li>Application 1</li><li>Application 2</li></ul><h4>Why It Matters</h4><p>Significance and impact</p>. Use proper HTML tags for structure.",
     "key_points": ["Specific, actionable learning point 1", "Concrete concept with example 2", "Practical application or skill 3", "Important relationship or principle 4", "Key takeaway or connection 5"],
     "fun_facts": ["Surprising, topic-specific fact with numbers/details", "Fascinating real-world example or discovery", "Unexpected connection or application"],
     "visual_suggestions": ["Detailed flowchart showing [specific process/concept]", "Diagram illustrating [specific relationship/structure]"],
@@ -146,15 +146,10 @@ Generate this exact JSON structure:
                 system_prompt += f""",
     "quiz": {{
         "type": "matching",
-        "instructions": "Match each {topic} term with its correct definition",
-        "questions": [
-            {{"id": "q1", "question": "Important term 1 from content", "options": ["Correct definition for term 1", "Definition for term 2", "Definition for term 3", "Distractor definition"], "type": "matching"}},
-            {{"id": "q2", "question": "Important term 2 from content", "options": ["Correct definition for term 2", "Definition for term 1", "Definition for term 3", "Distractor definition"], "type": "matching"}},
-            {{"id": "q3", "question": "Important term 3 from content", "options": ["Correct definition for term 3", "Definition for term 1", "Definition for term 2", "Distractor definition"], "type": "matching"}},
-            {{"id": "q4", "question": "Important term 4 from content", "options": ["Correct definition for term 4", "Definition for term 1", "Definition for term 2", "Distractor definition"], "type": "matching"}},
-            {{"id": "q5", "question": "Important term 5 from content", "options": ["Correct definition for term 5", "Definition for term 1", "Definition for term 2", "Distractor definition"], "type": "matching"}}
-        ],
-        "correct_answers": {{"q1": "Correct definition for term 1", "q2": "Correct definition for term 2", "q3": "Correct definition for term 3", "q4": "Correct definition for term 4", "q5": "Correct definition for term 5"}}
+        "instructions": "Match each term on the left with its correct definition on the right",
+        "left_items": ["Important term 1", "Important term 2", "Important term 3", "Important term 4", "Important term 5"],
+        "right_items": ["Definition for term 1", "Definition for term 2", "Definition for term 3", "Definition for term 4", "Definition for term 5"],
+        "correct_matches": {{"Important term 1": "Definition for term 1", "Important term 2": "Definition for term 2", "Important term 3": "Definition for term 3", "Important term 4": "Definition for term 4", "Important term 5": "Definition for term 5"}}
     }}"""
             elif spec["quiz_type"] == "multiple_choice":
                 system_prompt += f""",

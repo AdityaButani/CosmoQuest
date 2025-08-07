@@ -274,6 +274,47 @@ input[type="radio"]:checked::after {
     font-weight: 600;
 }
 
+/* Formatted Content Styling */
+.formatted-content h4 {
+    color: #a78bfa;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(167, 139, 250, 0.3);
+    padding-bottom: 0.5rem;
+}
+
+.formatted-content ul {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.formatted-content li {
+    margin-bottom: 0.5rem;
+    color: #d1d5db;
+}
+
+.formatted-content p {
+    margin-bottom: 1rem;
+    line-height: 1.7;
+}
+
+/* Matching Quiz Styling */
+.matching-quiz .left-column .bg-space-card\\/50 {
+    transition: all 0.3s ease;
+}
+
+.matching-quiz .left-column .bg-space-card\\/50:hover {
+    border-color: rgba(6, 182, 212, 0.5);
+    transform: translateX(5px);
+}
+
+.matching-select select:focus {
+    border-color: rgba(251, 146, 60, 0.7);
+    box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.2);
+}
+
 /* Navigation Animation */
 nav {
     transition: all 0.3s ease;

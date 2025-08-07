@@ -34,6 +34,32 @@ function setupQuizHandling() {
     }
 }
 
+function toggleQuestContent() {
+    const questContent = document.getElementById('quest-content');
+    const keyPoints = document.querySelector('.key-points');
+    const visualSuggestions = document.querySelector('.visual-suggestions');
+    const toggleBtn = document.getElementById('toggle-content-btn');
+    const icon = toggleBtn.querySelector('i');
+    
+    if (questContent.style.display === 'none') {
+        // Show content
+        questContent.style.display = 'block';
+        if (keyPoints) keyPoints.style.display = 'block';
+        if (visualSuggestions) visualSuggestions.style.display = 'block';
+        
+        icon.className = 'fas fa-eye-slash mr-2';
+        toggleBtn.innerHTML = '<i class="fas fa-eye-slash mr-2"></i>Hide Content';
+    } else {
+        // Hide content
+        questContent.style.display = 'none';
+        if (keyPoints) keyPoints.style.display = 'none';
+        if (visualSuggestions) visualSuggestions.style.display = 'none';
+        
+        icon.className = 'fas fa-eye mr-2';
+        toggleBtn.innerHTML = '<i class="fas fa-eye mr-2"></i>Show Content';
+    }
+}
+
 async function handleQuizSubmission(event) {
     event.preventDefault();
     

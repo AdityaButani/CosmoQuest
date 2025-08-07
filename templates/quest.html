@@ -94,13 +94,13 @@
                     </h2>
                     
                     <!-- Quest Content -->
-                    <div class="prose prose-lg prose-invert max-w-none mb-8">
-                        <p class="text-gray-300 leading-relaxed">{{ quest_data.content }}</p>
+                    <div id="quest-content" class="prose prose-lg prose-invert max-w-none mb-8">
+                        <div class="text-gray-300 leading-relaxed formatted-content">{{ quest_data.content | safe }}</div>
                     </div>
 
                     <!-- Key Points -->
                     {% if quest_data.key_points %}
-                    <div class="mb-8">
+                    <div class="key-points mb-8">
                         <h3 class="text-xl font-semibold mb-4 text-blue-300 flex items-center">
                             <i class="fas fa-star mr-2"></i>
                             Key Points
@@ -118,7 +118,7 @@
 
                     <!-- Visual Suggestions -->
                     {% if quest_data.visual_suggestions %}
-                    <div class="mb-8">
+                    <div class="visual-suggestions mb-8">
                         <h3 class="text-xl font-semibold mb-4 text-green-300 flex items-center">
                             <i class="fas fa-eye mr-2"></i>
                             Visual Learning Aids
@@ -139,12 +139,60 @@
                     <!-- Quiz Section -->
                     {% if quest_data.quiz %}
                     <div class="quiz-section bg-space-dark/30 rounded-xl p-6 border border-yellow-500/30">
-                        <h3 class="text-2xl font-bold mb-4 text-yellow-300 flex items-center">
-                            <i class="fas fa-question-circle mr-2"></i>
-                            Quest {{ quest_num }} Quiz
-                        </h3>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-2xl font-bold text-yellow-300 flex items-center">
+                                <i class="fas fa-question-circle mr-2"></i>
+                                Quest {{ quest_num }} Quiz
+                            </h3>
+                            <button id="toggle-content-btn" onclick="toggleQuestContent()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300">
+                                <i class="fas fa-eye-slash mr-2"></i>
+                                Hide Content
+                            </button>
+                        </div>
                         <p class="text-gray-400 mb-6">{{ quest_data.quiz.instructions }}</p>
                         
+                        {% if quest_data.quiz.type == 'matching' and quest_data.quiz.left_items %}
+                        <!-- New Matching Quiz Format -->
+                        <form id="quiz-form" class="space-y-6">
+                            <input type="hidden" name="quest_num" value="{{ quest_num }}">
+                            <div class="matching-quiz grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="left-column">
+                                    <h4 class="font-bold text-lg mb-4 text-cyan-300">Terms</h4>
+                                    <div class="space-y-3">
+                                        {% for item in quest_data.quiz.left_items %}
+                                        <div class="bg-space-card/50 rounded-lg p-4 border border-cyan-500/30">
+                                            <span class="text-white font-medium">{{ loop.index }}. {{ item }}</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="right-column">
+                                    <h4 class="font-bold text-lg mb-4 text-orange-300">Definitions</h4>
+                                    <div class="space-y-3">
+                                        {% for left_item in quest_data.quiz.left_items %}
+                                        <div class="matching-select">
+                                            <label class="block text-sm text-gray-400 mb-1">Match for "{{ left_item }}":</label>
+                                            <select name="q{{ loop.index }}" class="w-full bg-space-dark/50 border border-orange-500/50 rounded-lg px-3 py-2 text-white">
+                                                <option value="">Select definition...</option>
+                                                {% for right_item in quest_data.quiz.right_items %}
+                                                <option value="{{ right_item }}">{{ right_item }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-col sm:flex-row gap-4 mt-6">
+                                <button type="submit" class="flex-1 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105">
+                                    <i class="fas fa-check mr-2"></i>
+                                    Submit Quiz
+                                </button>
+                            </div>
+                        </form>
+                        {% else %}
+                        <!-- Regular Quiz Format -->
                         <form id="quiz-form" class="space-y-6">
                             <input type="hidden" name="quest_num" value="{{ quest_num }}">
                             {% for question in quest_data.quiz.questions %}
@@ -193,6 +241,7 @@
                                 </button>
                             </div>
                         </form>
+                        {% endif %}
                         
                         <div id="quiz-results" class="hidden mt-6"></div>
                     </div>
