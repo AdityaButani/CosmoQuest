@@ -2,6 +2,12 @@ import os
 import logging
 from flask import Flask, session
 from werkzeug.middleware.proxy_fix import ProxyFix
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
