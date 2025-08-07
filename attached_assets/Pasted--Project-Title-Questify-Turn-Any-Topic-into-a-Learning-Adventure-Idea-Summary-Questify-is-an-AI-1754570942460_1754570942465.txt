@@ -1,0 +1,91 @@
+ Project Title: Questify: Turn Any Topic into a Learning Adventure
+🧠 Idea Summary
+Questify is an AI-powered educational web app where users can enter any topic (e.g., “Photosynthesis”, “World War II”, “Operating System Deadlocks”) and instantly convert it into a 5-part interactive learning quest, each part with progressively deeper content, mini-quizzes, visual aids, fun facts, and additional resources.
+
+The UI is designed with a space-themed interface to make the learning journey feel like a mission through knowledge galaxies.
+
+🚀 Tech Stack
+Frontend: HTML + Tailwind CSS + JS
+
+Backend: Python Flask
+
+AI Model: Groq API using LLaMA 3.3 70B Versatile Model
+
+Web Search: SerperAPI (Google Search API for real-time context)
+
+Hosting: Render / Replit / GitHub Pages (static + API)
+
+No Database: Keeping it simple using session/local storage or just API-generated responses
+
+🧩 Key Features
+🧭 1. Quest Generator
+Users enter a topic.
+
+SerperAPI performs a web search to provide additional context.
+
+Groq API (LLaMA 3.3 70B) generates 5-part educational content.
+
+Each Quest has:
+
+Detailed explanations
+
+Quizzes after Quest 2, 3, 4, and 5
+
+Visual learning materials
+
+Fun facts
+
+Additional resource links
+
+📚 2. Quest Flow
+Quest	Content	Quiz
+Quest 1	Intro to topic	❌
+Quest 2	Expanded explanation	✅ 5 True/False
+Quest 3	Deeper concepts	✅ 5 Match-the-following
+Quest 4	Applied learning	✅ 5 MCQs
+Quest 5	Revision + summary	✅ Final 10 Q Quiz: 3 T/F + 3 Match + 4 MCQ
+
+🧠 3. Smart Quizzes
+All quizzes are auto-generated using Groq API with topic context.
+
+Self-evaluated (no login or storage).
+
+Adaptive format based on quest.
+
+📈 4. Visual & Fun Additions
+Right sidebar: Fun Facts (2–3 quirky or wow facts)
+
+Below content:
+
+Additional Resources (e.g., GeeksForGeeks, Khan Academy)
+
+Visual Learning Material: diagrams, charts, flowcharts
+
+🛰️ 5. Space-Themed UI
+Progression UI with 5 floating planets (each = 1 quest)
+
+Quests light up upon completion
+
+Dashboard-style navigation
+
+🏆 Why It Can Win a Hackathon
+✅ Creative yet easy to understand
+
+✅ Real-life impact (learning made fun)
+
+✅ Uses LLMs + Web Search smartly for live contextual generation
+
+✅ Gamified, progressive, visual — hooks users and judges alike
+
+✅ No database = lightweight = fast demo-ready
+
+✅ Modular: can be extended easily after hackathon
+
+📦 Bonus Ideas (if time permits)
+Add a progress bar for each quest
+
+Allow user to download the quest as a PDF
+
+Add speech synthesis (text-to-speech) for accessibility
+
+Add toggle to switch between “school-level” and “college-level” content
