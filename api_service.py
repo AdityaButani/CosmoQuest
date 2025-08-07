@@ -118,9 +118,9 @@ Educational Requirements:
 Generate this exact JSON structure:
 {{
     "title": "Quest {quest_num}: {spec['title']}",
-    "content": "Write 250-300 words of comprehensive educational content with clear HTML structure. Format as: <h4>Introduction</h4><p>Engaging opening paragraph</p><h4>Key Concepts</h4><ul><li>Important point 1</li><li>Important point 2</li></ul><h4>How It Works</h4><p>Process explanation</p><h4>Real-World Applications</h4><ul><li>Application 1</li><li>Application 2</li></ul><h4>Why It Matters</h4><p>Significance and impact</p>. Use proper HTML tags for structure.",
-    "key_points": ["Specific, actionable learning point 1", "Concrete concept with example 2", "Practical application or skill 3", "Important relationship or principle 4", "Key takeaway or connection 5"],
-    "fun_facts": ["Surprising, topic-specific fact with numbers/details", "Fascinating real-world example or discovery", "Unexpected connection or application"],
+    "content": "Write 200-250 words of educational content with clear structure. Use headings and bullet points for organization.",
+    "key_points": ["Core concept 1", "Key principle 2", "Main application 3"],
+    "fun_facts": ["Interesting fact about {topic}", "Real-world application"],
     "visual_suggestions": ["Detailed flowchart showing [specific process/concept]", "Diagram illustrating [specific relationship/structure]"],
     "resources": [
         {{"title": "Khan Academy - {topic}", "url": "https://www.khanacademy.org/search?search_again=1&search_query={topic.replace(' ', '+')}", "description": "Interactive lessons and practice exercises"}},

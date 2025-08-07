@@ -1,8 +1,9 @@
 from flask import render_template, request, jsonify, session, redirect, url_for
-from app import app
+from app import app, quest_data_cache
 from api_service import generate_quest_content, search_topic_context
 import logging
 import json
+import uuid
 
 @app.route('/')
 def index():
@@ -20,7 +21,11 @@ def generate_quest():
         # Clear any existing quest from session
         session.clear()
         
-        # Store topic in session
+        # Generate unique session ID for quest data storage
+        quest_session_id = str(uuid.uuid4())
+        session['quest_session_id'] = quest_session_id
+        
+        # Store minimal data in session
         session['topic'] = topic
         session['current_quest'] = 1
         session['completed_quests'] = []
@@ -28,14 +33,16 @@ def generate_quest():
         # Get context from web search
         logging.info(f"Searching for context on topic: {topic}")
         context = search_topic_context(topic)
-        session['context'] = context
+        
+        # Initialize quest cache for this session
+        quest_data_cache[quest_session_id] = {'context': context}
         
         # Generate initial quest content
         logging.info(f"Generating quest content for: {topic}")
         quest_data = generate_quest_content(topic, 1, context)
         
         if quest_data:
-            session['quest_1'] = quest_data
+            quest_data_cache[quest_session_id]['quest_1'] = quest_data
             return redirect(url_for('quest_page', quest_num=1))
         else:
             return jsonify({'error': 'Failed to generate quest content. Please try again.'}), 500
@@ -57,20 +64,24 @@ def quest_page(quest_num):
     if quest_num > 1 and quest_num - 1 not in session.get('completed_quests', []):
         return redirect(url_for('quest_page', quest_num=session.get('current_quest', 1)))
     
+    quest_session_id = session.get('quest_session_id')
+    if not quest_session_id or quest_session_id not in quest_data_cache:
+        return redirect(url_for('index'))
+    
     quest_key = f'quest_{quest_num}'
     
     # Generate quest content if not already generated
-    if quest_key not in session:
+    if quest_key not in quest_data_cache[quest_session_id]:
         try:
             logging.info(f"Generating quest {quest_num} for topic: {session.get('topic', 'unknown')}")
             quest_data = generate_quest_content(
                 session['topic'], 
                 quest_num, 
-                session.get('context', '')
+                quest_data_cache[quest_session_id].get('context', '')
             )
             if quest_data:
-                session[quest_key] = quest_data
-                logging.info(f"Quest {quest_num} data generated and saved to session")
+                quest_data_cache[quest_session_id][quest_key] = quest_data
+                logging.info(f"Quest {quest_num} data generated and saved to cache")
             else:
                 logging.error(f"Failed to generate quest {quest_num} data")
                 return render_template('quest.html', error="Failed to generate quest content")
@@ -78,7 +89,7 @@ def quest_page(quest_num):
             logging.error(f"Error generating quest {quest_num}: {str(e)}")
             return render_template('quest.html', error="An error occurred while loading the quest")
     
-    quest_data = session.get(quest_key, {})
+    quest_data = quest_data_cache[quest_session_id].get(quest_key, {})
     
     return render_template('quest.html', 
                          quest_num=quest_num,
@@ -152,9 +163,13 @@ def submit_quiz():
         
         logging.info(f"Parsed user answers: {user_answers}")
         
-        # Get quest data to check correct answers
+        # Get quest data from cache
+        quest_session_id = session.get('quest_session_id')
+        if not quest_session_id or quest_session_id not in quest_data_cache:
+            return jsonify({'error': 'Session expired. Please start a new quest.'}), 400
+        
         quest_key = f'quest_{quest_num}'
-        quest_data = session.get(quest_key, {})
+        quest_data = quest_data_cache[quest_session_id].get(quest_key, {})
         
         logging.info(f"Quest data found: {'yes' if quest_data else 'no'}")
         if quest_data:
@@ -163,8 +178,23 @@ def submit_quiz():
                 logging.info(f"Quiz type: {quest_data['quiz'].get('type', 'unknown')}")
         
         if 'quiz' not in quest_data:
-            logging.error(f"Quiz data not found for quest {quest_num}. Available session keys: {list(session.keys())}")
-            return jsonify({'error': 'Quiz data not found'}), 400
+            # Try regenerating the quest if it's missing
+            logging.warning(f"Quest data missing for quest {quest_num}. Attempting to regenerate...")
+            try:
+                quest_data = generate_quest_content(
+                    session.get('topic', ''), 
+                    quest_num, 
+                    quest_data_cache[quest_session_id].get('context', '')
+                )
+                if quest_data and 'quiz' in quest_data:
+                    quest_data_cache[quest_session_id][quest_key] = quest_data
+                    logging.info(f"Successfully regenerated quest {quest_num} data")
+                else:
+                    logging.error(f"Failed to regenerate quest {quest_num} data")
+                    return jsonify({'error': 'Quiz data not found and could not be regenerated'}), 400
+            except Exception as e:
+                logging.error(f"Error regenerating quest {quest_num}: {str(e)}")
+                return jsonify({'error': 'Quiz data not found'}), 400
         
         quiz_data = quest_data['quiz']
         correct_answers = quiz_data.get('correct_answers', {})

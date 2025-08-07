@@ -10,10 +10,13 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "questify-secret-key-2024")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# Configure session settings to handle large quest data
+# Configure session settings - use server-side storage for large quest data
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
 app.config['SESSION_PERMANENT'] = True
+
+# In-memory storage for quest data (in production, use Redis or database)
+quest_data_cache = {}
 
 # Import routes after app creation to avoid circular imports
 from routes import *
