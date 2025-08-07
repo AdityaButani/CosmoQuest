@@ -158,12 +158,61 @@ def enrich_visual_suggestions_with_images(quest_data: Dict[str, Any], topic: str
         # Return original quest_data if enrichment fails
         return quest_data
 
-def generate_quest_content(topic: str, quest_num: int, context: str = "") -> Optional[Dict[str, Any]]:
-    """Generate quest content using Groq API"""
+def make_ai_request(prompt: str, use_openai: bool = False) -> Optional[Dict[str, Any]]:
+    """Make request to AI API with fallback support"""
+    if use_openai and not OPENAI_API_KEY:
+        logging.error("OpenAI API key not available for fallback")
+        return None
+    elif not use_openai and not GROQ_API_KEY:
+        logging.error("Groq API key not available")
+        return None
+        
+    api_url = OPENAI_API_URL if use_openai else GROQ_API_URL
+    api_key = OPENAI_API_KEY if use_openai else GROQ_API_KEY
+    model = "gpt-3.5-turbo" if use_openai else "llama-3.3-70b-versatile"
+    provider = "OpenAI" if use_openai else "Groq"
+    
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": prompt}
+        ],
+        "temperature": 0.7,
+        "max_tokens": 2000
+    }
+    
     try:
-        if not GROQ_API_KEY:
-            logging.error("GROQ_API_KEY not found")
+        response = requests.post(api_url, headers=headers, json=payload, timeout=30)
+        
+        if response.status_code == 200:
+            data = response.json()
+            content = data['choices'][0]['message']['content'].strip()
+            logging.info(f"Successfully generated content using {provider}")
+            return json.loads(content)
+        else:
+            error_text = response.text
+            logging.error(f"{provider} API error: {response.status_code} - {error_text}")
+            
+            # Check if it's a rate limit error
+            if response.status_code == 429:
+                return {"rate_limit": True, "provider": provider}
             return None
+            
+    except json.JSONDecodeError as e:
+        logging.error(f"{provider} API returned invalid JSON: {str(e)}")
+        return None
+    except Exception as e:
+        logging.error(f"{provider} API request failed: {str(e)}")
+        return None
+
+def generate_quest_content(topic: str, quest_num: int, context: str = "") -> Optional[Dict[str, Any]]:
+    """Generate quest content using AI APIs with automatic fallback"""
+    try:
         
         # Define quest specifications with distinct, non-overlapping content areas
         quest_specs = {
@@ -295,69 +344,37 @@ Generate this exact JSON structure with content focused ONLY on {spec['content_f
 
         system_prompt += "\n}\n\nEnsure all content is accurate, educational, and appropriate for the quest level. Make the content engaging and progressive. Replace all placeholder text with actual topic-specific content."
 
-        headers = {
-            'Authorization': f'Bearer {GROQ_API_KEY}',
-            'Content-Type': 'application/json'
-        }
+        # Try Groq first, fallback to OpenAI if rate limited
+        logging.info("Attempting quest generation with Groq API")
+        result = make_ai_request(system_prompt, use_openai=False)
         
-        payload = {
-            "messages": [
-                {
-                    "role": "system", 
-                    "content": system_prompt
-                },
-                {
-                    "role": "user", 
-                    "content": f"Create Quest {quest_num} content for the topic: {topic}"
-                }
-            ],
-            "model": "llama-3.3-70b-versatile",
-            "temperature": 0.7,
-            "max_tokens": 2000,
-            "top_p": 1,
-            "stream": False
-        }
+        # Check if we hit a rate limit and need to fallback
+        if result and isinstance(result, dict) and result.get("rate_limit"):
+            logging.warning(f"Groq API rate limited, falling back to OpenAI")
+            if OPENAI_API_KEY:
+                result = make_ai_request(system_prompt, use_openai=True)
+            else:
+                logging.error("OpenAI API key not available for fallback")
+                return None
         
-        response = requests.post(GROQ_API_URL, headers=headers, json=payload, timeout=30)
-        
-        if response.status_code == 200:
-            data = response.json()
-            content = data['choices'][0]['message']['content'].strip()
-            
-            # Try to parse JSON response with better error handling
-            try:
-                # Clean up the response - remove any markdown formatting
-                content = content.strip()
-                if content.startswith('```json'):
-                    content = content[7:]
-                if content.endswith('```'):
-                    content = content[:-3]
-                content = content.strip()
-                
-                quest_data = json.loads(content)
-                
-                # Validate required fields
-                required_fields = ['title', 'content', 'key_points', 'fun_facts', 'visual_suggestions', 'resources']
-                if spec.get('has_quiz'):
-                    required_fields.append('quiz')
-                
-                for field in required_fields:
-                    if field not in quest_data:
-                        logging.error(f"Missing required field '{field}' in quest response")
-                        return create_fallback_quest_content(topic, quest_num, spec)
-                
-                # Enrich visual suggestions with actual images
-                quest_data = enrich_visual_suggestions_with_images(quest_data, topic)
-                
-                return quest_data
-                
-            except json.JSONDecodeError as e:
-                logging.error(f"Failed to parse JSON from Groq response for quest {quest_num}: {str(e)}")
-                logging.error(f"Raw response content: {content[:500]}...")
-                return create_fallback_quest_content(topic, quest_num, spec)
-        else:
-            logging.error(f"Groq API error: {response.status_code} - {response.text}")
+        if not result:
+            logging.error("Failed to generate quest content with both providers")
             return create_fallback_quest_content(topic, quest_num, spec)
+        
+        # Validate required fields
+        required_fields = ['title', 'content', 'key_points', 'fun_facts', 'visual_suggestions', 'resources']
+        if spec.get('has_quiz'):
+            required_fields.append('quiz')
+        
+        for field in required_fields:
+            if field not in result:
+                logging.error(f"Missing required field '{field}' in quest response")
+                return create_fallback_quest_content(topic, quest_num, spec)
+        
+        # Enrich visual suggestions with actual images
+        result = enrich_visual_suggestions_with_images(result, topic)
+        
+        return result
             
     except Exception as e:
         logging.error(f"Error generating quest content: {str(e)}")
