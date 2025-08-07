@@ -6,9 +6,11 @@ from typing import Dict, Optional, Any
 
 # API Configuration
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY", "")
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
 SERPER_API_URL = "https://google.serper.dev/search"
 SERPER_IMAGES_URL = "https://google.serper.dev/images"
 
