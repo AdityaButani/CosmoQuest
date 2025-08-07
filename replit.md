@@ -8,6 +8,14 @@ Questify is an educational web application that transforms any topic into an int
 
 Preferred communication style: Simple, everyday language.
 
+### Educational Content Requirements (Updated)
+- Each quest must cover distinct, non-overlapping subtopics
+- Progressive complexity with specialized focus areas per quest
+- No repetition of generic themes like "introduction" or "key concepts" across quests
+- Content organized with quest-specific headings reflecting unique content areas
+- Quiz questions test application and understanding, not just recall
+- Varied question formats across quests with no redundancy
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -36,13 +44,18 @@ Preferred communication style: Simple, everyday language.
 - **Fallback Strategy**: Graceful degradation when API services are unavailable
 
 ### Quest Flow System
-- **Structured Learning Path**: 5-part quest system with progressive difficulty and complexity
-- **Educational Content**: 250-300 word comprehensive explanations with HTML structure (headings, subheadings, bullet points)
-- **Progressive Complexity**: Each quest builds upon previous knowledge with increasing depth and sophistication
-- **Quiz Integration**: Quest 2 (True/False), Quest 3 (Multiple Choice), Quest 4-5 (Mixed formats)
+- **Distinct Content Areas**: Each quest covers completely different, non-overlapping aspects of the topic
+- **Specialized Quest Focus**: 
+  - Quest 1: Foundations & Core Principles (definitions, history, fundamental principles)
+  - Quest 2: Mechanisms & Processes (step-by-step how it works, underlying mechanisms)
+  - Quest 3: Advanced Systems & Interactions (complex relationships, specialized techniques)
+  - Quest 4: Real-World Applications & Impact (practical uses, industry applications, societal impact)
+  - Quest 5: Innovations & Future Directions (latest research, emerging trends, cutting-edge developments)
+- **Educational Content**: 250-300 word specialized explanations with quest-specific HTML headings and organization
+- **Progressive Knowledge Building**: Each quest assumes knowledge from previous quests while covering unique content areas
+- **Advanced Quiz Design**: Questions test application and analysis rather than recall, with quest-specific focus
 - **Server-side Storage**: Quest data cached server-side to prevent session cookie size limits
-- **Progress Tracking**: Visual progress indicators and completion status management
-- **Content Types**: Mix of detailed explanations, fun facts, visual elements, and interactive assessments
+- **Content Quality**: Eliminates generic sections and repetitive themes across quests
 
 ## External Dependencies
 

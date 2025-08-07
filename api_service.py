@@ -60,37 +60,37 @@ def generate_quest_content(topic: str, quest_num: int, context: str = "") -> Opt
             logging.error("GROQ_API_KEY not found")
             return None
         
-        # Define quest specifications
+        # Define quest specifications with distinct, non-overlapping content areas
         quest_specs = {
             1: {
-                "title": "Introduction & Overview",
-                "description": "Basic introduction to the topic",
+                "title": "Foundations & Core Principles",
+                "content_focus": "Basic definitions, historical background, fundamental principles, and why this topic matters",
                 "has_quiz": False
             },
             2: {
-                "title": "Fundamental Concepts",
-                "description": "Expanded explanation with key concepts",
+                "title": "Mechanisms & Processes", 
+                "content_focus": "How it works step-by-step, underlying mechanisms, key processes, and scientific principles",
                 "has_quiz": True,
                 "quiz_type": "true_false",
                 "quiz_count": 5
             },
             3: {
-                "title": "Deeper Understanding",
-                "description": "Advanced concepts and relationships",
+                "title": "Advanced Systems & Interactions",
+                "content_focus": "Complex relationships, advanced techniques, system interactions, and specialized methods",
                 "has_quiz": True,
-                "quiz_type": "multiple_choice",
+                "quiz_type": "multiple_choice", 
                 "quiz_count": 5
             },
             4: {
-                "title": "Practical Applications",
-                "description": "Real-world applications and examples",
+                "title": "Real-World Applications & Impact",
+                "content_focus": "Practical applications, industry uses, societal impact, and problem-solving approaches",
                 "has_quiz": True,
                 "quiz_type": "multiple_choice",
                 "quiz_count": 5
             },
             5: {
-                "title": "Mastery & Integration",
-                "description": "Comprehensive review and advanced insights",
+                "title": "Innovations & Future Directions",
+                "content_focus": "Latest research, emerging trends, future possibilities, and cutting-edge developments",
                 "has_quiz": True,
                 "quiz_type": "mixed",
                 "quiz_count": 10
@@ -99,29 +99,32 @@ def generate_quest_content(topic: str, quest_num: int, context: str = "") -> Opt
         
         spec = quest_specs[quest_num]
         
-        # Construct the prompt with better educational guidance
-        system_prompt = f"""You are an expert educational content creator and teacher. Create comprehensive, engaging, and academically rigorous learning content for Quest {quest_num} of 5 about "{topic}".
+        # Construct the prompt with distinct content focus for each quest
+        system_prompt = f"""You are an expert educational content creator. Create comprehensive, specialized learning content for Quest {quest_num} of 5 about "{topic}".
 
 Context from web search: {context}
 
-Quest {quest_num}: {spec['title']} - {spec['description']}
+Quest {quest_num}: {spec['title']}
+SPECIFIC CONTENT FOCUS: {spec['content_focus']}
+
+CRITICAL: Each quest must cover COMPLETELY DIFFERENT aspects of {topic}. DO NOT repeat content from other quests.
+
+Quest {quest_num} Content Requirements:
+{f"- Focus on: {spec['content_focus']}" if quest_num == 1 else f"- Focus exclusively on: {spec['content_focus']} (building on foundational knowledge from Quest 1)" if quest_num == 2 else f"- Focus exclusively on: {spec['content_focus']} (assuming knowledge from Quests 1-2)" if quest_num == 3 else f"- Focus exclusively on: {spec['content_focus']} (building on Quests 1-3)" if quest_num == 4 else f"- Focus exclusively on: {spec['content_focus']} (synthesizing all previous quest knowledge)"}
+- Write 250-300 words of specialized content ONLY about this quest's focus area
+- Use distinct headings that reflect THIS quest's unique content area
+- No generic "introduction" or "key concepts" - use specific headings for this quest's topic
+- Include detailed examples specific to this quest's focus area
 
 IMPORTANT: You must respond with ONLY valid JSON. No markdown formatting, no explanations, just pure JSON.
 
-Educational Requirements:
-- Content must be 250-300 words minimum with clear explanations, examples, and analogies
-- Include real-world applications and connections to make learning meaningful
-- Use engaging language that builds excitement about the topic
-- Progress logically from previous quest knowledge (if quest > 1)
-- Make complex concepts accessible through step-by-step explanations
-
-Generate this exact JSON structure:
+Generate this exact JSON structure with content focused ONLY on {spec['content_focus']}:
 {{
     "title": "Quest {quest_num}: {spec['title']}",
-    "content": "Write 250-300 words of comprehensive educational content with clear HTML structure. Format as: <h4>Introduction</h4><p>Engaging opening paragraph</p><h4>Key Concepts</h4><ul><li>Important concept 1 with explanation</li><li>Important concept 2 with explanation</li><li>Important concept 3 with explanation</li></ul><h4>How It Works</h4><p>Detailed process explanation with examples</p><h4>Real-World Applications</h4><ul><li>Practical application 1</li><li>Practical application 2</li></ul><h4>Why It Matters</h4><p>Significance and impact on the field</p>. Use proper HTML tags for structure.",
-    "key_points": ["Specific, actionable learning point with details", "Concrete concept with real example", "Practical application or skill explanation", "Important relationship or principle", "Key takeaway connecting to broader field"],
-    "fun_facts": ["Surprising, topic-specific fact with numbers or details", "Fascinating real-world example or historical discovery", "Unexpected connection to everyday life or other fields"],
-    "visual_suggestions": ["Detailed flowchart showing [specific process/concept]", "Diagram illustrating [specific relationship/structure]"],
+    "content": "Write 250-300 words focused exclusively on {spec['content_focus']} for {topic}. Use specific HTML headings that reflect THIS quest's focus area - NO generic headings like 'Introduction' or 'Key Concepts'. Structure as distinct sections with detailed explanations, specific examples, and technical details relevant to this quest's specialized focus area. Use proper HTML tags: <h4>Specific Section Title</h4><p>Detailed content</p><ul><li>Specific points</li></ul>",
+    "key_points": ["Specific learning point about {spec['content_focus']}", "Detailed insight about this quest's focus area", "Technical aspect of this quest's topic", "Important detail specific to this quest's content", "Advanced point about this quest's specialized area"],
+    "fun_facts": ["Surprising fact specifically about {spec['content_focus']} in {topic}", "Fascinating detail about this quest's focus area", "Unexpected insight about this quest's specialized topic"],
+    "visual_suggestions": ["Specific diagram for this quest's content area", "Chart/illustration relevant to this quest's focus"],
     "resources": [
         {{"title": "Khan Academy - {topic}", "url": "https://www.khanacademy.org/search?search_again=1&search_query={topic.replace(' ', '+')}", "description": "Interactive lessons and practice exercises"}},
         {{"title": "Wikipedia - {topic}", "url": "https://en.wikipedia.org/wiki/{topic.replace(' ', '_')}", "description": "Comprehensive reference and additional details"}}
@@ -132,13 +135,13 @@ Generate this exact JSON structure:
                 system_prompt += f""",
     "quiz": {{
         "type": "true_false",
-        "instructions": "Select True or False for each statement about {topic}",
+        "instructions": "Select True or False for each statement about {spec['content_focus']} in {topic}",
         "questions": [
-            {{"id": "q1", "question": "Create a specific true/false statement testing key concept from the content above", "type": "true_false"}},
-            {{"id": "q2", "question": "Create another specific true/false statement testing different concept", "type": "true_false"}},
-            {{"id": "q3", "question": "Create a true/false statement about a real-world application", "type": "true_false"}},
-            {{"id": "q4", "question": "Create a true/false statement testing understanding of process/mechanism", "type": "true_false"}},
-            {{"id": "q5", "question": "Create a true/false statement about importance/significance", "type": "true_false"}}
+            {{"id": "q1", "question": "Create a specific true/false statement testing THIS quest's content focus: {spec['content_focus']}", "type": "true_false"}},
+            {{"id": "q2", "question": "Create another true/false statement about {spec['content_focus']} that requires understanding, not just recall", "type": "true_false"}},
+            {{"id": "q3", "question": "Create a true/false statement that tests application of knowledge about {spec['content_focus']}", "type": "true_false"}},
+            {{"id": "q4", "question": "Create a challenging true/false statement about {spec['content_focus']} that requires analysis", "type": "true_false"}},
+            {{"id": "q5", "question": "Create a true/false statement about implications or consequences of {spec['content_focus']}", "type": "true_false"}}
         ],
         "correct_answers": {{"q1": "true", "q2": "false", "q3": "true", "q4": "false", "q5": "true"}}
     }}"""
@@ -154,14 +157,14 @@ Generate this exact JSON structure:
             elif spec["quiz_type"] == "multiple_choice":
                 system_prompt += f""",
     "quiz": {{
-        "type": "multiple_choice",
-        "instructions": "Select the best answer for each question about {topic}",
+        "type": "multiple_choice", 
+        "instructions": "Select the best answer for each question about {spec['content_focus']} in {topic}",
         "questions": [
-            {{"id": "q1", "question": "Create specific question testing main concept from content", "options": ["Correct answer", "Plausible distractor 1", "Plausible distractor 2", "Plausible distractor 3"], "type": "multiple_choice"}},
-            {{"id": "q2", "question": "Create question about process/mechanism explained in content", "options": ["Correct answer", "Plausible distractor 1", "Plausible distractor 2", "Plausible distractor 3"], "type": "multiple_choice"}},
-            {{"id": "q3", "question": "Create question about real-world application mentioned", "options": ["Correct answer", "Plausible distractor 1", "Plausible distractor 2", "Plausible distractor 3"], "type": "multiple_choice"}},
-            {{"id": "q4", "question": "Create question testing deeper understanding/analysis", "options": ["Correct answer", "Plausible distractor 1", "Plausible distractor 2", "Plausible distractor 3"], "type": "multiple_choice"}},
-            {{"id": "q5", "question": "Create question about significance/importance discussed", "options": ["Correct answer", "Plausible distractor 1", "Plausible distractor 2", "Plausible distractor 3"], "type": "multiple_choice"}}
+            {{"id": "q1", "question": "Create specific question testing understanding of {spec['content_focus']} - require application, not just recall", "options": ["Correct answer based on content", "Plausible but incorrect distractor", "Another plausible distractor", "Third plausible distractor"], "type": "multiple_choice"}},
+            {{"id": "q2", "question": "Create analytical question about {spec['content_focus']} that tests deeper understanding", "options": ["Correct analytical answer", "Incorrect but reasonable option", "Another incorrect option", "Third incorrect option"], "type": "multiple_choice"}},
+            {{"id": "q3", "question": "Create problem-solving question related to {spec['content_focus']} requiring application", "options": ["Correct solution", "Common misconception", "Partially correct but incomplete", "Incorrect approach"], "type": "multiple_choice"}},
+            {{"id": "q4", "question": "Create comparison/evaluation question about {spec['content_focus']}", "options": ["Best evaluation/comparison", "Incorrect evaluation", "Another incorrect option", "Third incorrect option"], "type": "multiple_choice"}},
+            {{"id": "q5", "question": "Create synthesis question about {spec['content_focus']} connecting to broader implications", "options": ["Correct synthesis", "Incorrect connection", "Another wrong connection", "Third wrong connection"], "type": "multiple_choice"}}
         ],
         "correct_answers": {{"q1": "Correct answer", "q2": "Correct answer", "q3": "Correct answer", "q4": "Correct answer", "q5": "Correct answer"}}
     }}"""
