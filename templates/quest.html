@@ -150,9 +150,17 @@
                                         <div class="bg-space-card/50 rounded-lg overflow-hidden border border-green-500/30 hover:border-green-400/50 transition-all duration-300">
                                             <img src="{{ image.url }}" 
                                                  alt="{{ image.title }}" 
-                                                 class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                                                 class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer hover:brightness-110"
                                                  loading="lazy"
-                                                 onerror="this.parentElement.innerHTML='<div class=\'flex items-center justify-center h-48 text-gray-400\'><i class=\'fas fa-image-slash text-2xl\'></i><span class=\'ml-2\'>Image unavailable</span></div>'">
+                                                 onclick="openImagePopup('{{ image.url }}', '{{ image.title|e }}', '{{ image.source|e }}')"
+                                                 onerror="this.parentElement.innerHTML='<div class=\'flex items-center justify-center h-48 text-gray-400\'><i class=\'fas fa-image-slash text-2xl\'></i><span class=\'ml-2\'>Image unavailable</span></div>'"
+                                                 title="Click to view full size">
+                                            <!-- Click indicator overlay -->
+                                            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                                <div class="bg-white/90 rounded-full p-2 transform scale-0 group-hover:scale-100 transition-transform duration-300">
+                                                    <i class="fas fa-expand-arrows-alt text-gray-800 text-lg"></i>
+                                                </div>
+                                            </div>
                                             <div class="p-3 bg-gradient-to-t from-space-dark/80 to-transparent">
                                                 <p class="text-xs text-gray-300 font-medium truncate">{{ image.title }}</p>
                                                 {% if image.educational %}
@@ -364,6 +372,45 @@
         </div>
         {% endif %}
     </main>
+
+    <!-- Image Popup Modal -->
+    <div id="imagePopup" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div id="imagePopupContent" class="relative bg-space-card/95 backdrop-blur-sm rounded-2xl border border-purple-500/50 shadow-2xl max-w-4xl max-h-[90vh] overflow-hidden resize">
+                <!-- Header -->
+                <div class="flex items-center justify-between p-4 border-b border-purple-500/30 bg-space-dark/50">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-image text-purple-400"></i>
+                        <h3 id="imagePopupTitle" class="text-lg font-semibold text-white truncate">Visual Learning Aid</h3>
+                    </div>
+                    <button onclick="closeImagePopup()" class="text-gray-400 hover:text-white transition-colors p-2 hover:bg-red-500/20 rounded-lg">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Image Container -->
+                <div class="relative overflow-auto" style="max-height: calc(90vh - 120px);">
+                    <img id="imagePopupImg" src="" alt="" class="w-full h-auto block">
+                </div>
+                
+                <!-- Footer -->
+                <div class="p-4 border-t border-purple-500/30 bg-space-dark/30">
+                    <div class="flex items-center justify-between">
+                        <span id="imagePopupSource" class="text-sm text-gray-400">Educational Resource</span>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="openOriginalImage()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-external-link-alt mr-1"></i>
+                                View Original
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Resize Handle -->
+                <div class="absolute bottom-0 right-0 w-4 h-4 bg-purple-500/50 cursor-se-resize" id="resizeHandle"></div>
+            </div>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='js/quest.js') }}"></script>
 </body>

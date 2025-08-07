@@ -467,3 +467,139 @@ function autoSaveQuizProgress() {
 
 // Initialize auto-save
 autoSaveQuizProgress();
+
+// Global variables for popup functionality
+let currentImageUrl = '';
+let isDragging = false;
+let isResizing = false;
+let startX, startY, startWidth, startHeight;
+
+// Image popup functions
+function openImagePopup(imageUrl, title, source) {
+    currentImageUrl = imageUrl;
+    
+    // Set popup content
+    document.getElementById('imagePopupTitle').textContent = title || 'Visual Learning Aid';
+    document.getElementById('imagePopupSource').textContent = source || 'Educational Resource';
+    document.getElementById('imagePopupImg').src = imageUrl;
+    document.getElementById('imagePopupImg').alt = title || 'Visual Learning Aid';
+    
+    // Show popup
+    const popup = document.getElementById('imagePopup');
+    popup.classList.remove('hidden');
+    
+    // Add smooth fade-in animation
+    popup.style.opacity = '0';
+    setTimeout(() => {
+        popup.style.transition = 'opacity 0.3s ease';
+        popup.style.opacity = '1';
+    }, 10);
+    
+    // Prevent body scroll when popup is open
+    document.body.style.overflow = 'hidden';
+    
+    // Add escape key listener
+    document.addEventListener('keydown', handleEscapeKey);
+    
+    // Initialize resize functionality
+    initializePopupResize();
+}
+
+function closeImagePopup() {
+    const popup = document.getElementById('imagePopup');
+    
+    // Add fade-out animation
+    popup.style.transition = 'opacity 0.3s ease';
+    popup.style.opacity = '0';
+    
+    setTimeout(() => {
+        popup.classList.add('hidden');
+        popup.style.opacity = '';
+        popup.style.transition = '';
+        
+        // Restore body scroll
+        document.body.style.overflow = '';
+        
+        // Remove escape key listener
+        document.removeEventListener('keydown', handleEscapeKey);
+        
+        // Reset popup content size
+        const popupContent = document.getElementById('imagePopupContent');
+        popupContent.style.width = '';
+        popupContent.style.height = '';
+    }, 300);
+}
+
+function openOriginalImage() {
+    if (currentImageUrl) {
+        window.open(currentImageUrl, '_blank');
+    }
+}
+
+function handleEscapeKey(event) {
+    if (event.key === 'Escape') {
+        closeImagePopup();
+    }
+}
+
+function initializePopupResize() {
+    const popupContent = document.getElementById('imagePopupContent');
+    const resizeHandle = document.getElementById('resizeHandle');
+    
+    if (!resizeHandle) return;
+    
+    resizeHandle.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startWidth = parseInt(window.getComputedStyle(popupContent).width, 10);
+        startHeight = parseInt(window.getComputedStyle(popupContent).height, 10);
+        
+        document.addEventListener('mousemove', handleResize);
+        document.addEventListener('mouseup', stopResize);
+        
+        // Prevent text selection during resize
+        e.preventDefault();
+    });
+}
+
+function handleResize(e) {
+    if (!isResizing) return;
+    
+    const popupContent = document.getElementById('imagePopupContent');
+    const newWidth = startWidth + (e.clientX - startX);
+    const newHeight = startHeight + (e.clientY - startY);
+    
+    // Set minimum and maximum dimensions
+    const minWidth = 400;
+    const minHeight = 300;
+    const maxWidth = window.innerWidth * 0.9;
+    const maxHeight = window.innerHeight * 0.9;
+    
+    if (newWidth >= minWidth && newWidth <= maxWidth) {
+        popupContent.style.width = newWidth + 'px';
+    }
+    
+    if (newHeight >= minHeight && newHeight <= maxHeight) {
+        popupContent.style.height = newHeight + 'px';
+    }
+}
+
+function stopResize() {
+    isResizing = false;
+    document.removeEventListener('mousemove', handleResize);
+    document.removeEventListener('mouseup', stopResize);
+}
+
+// Close popup when clicking outside the content
+document.addEventListener('DOMContentLoaded', function() {
+    const popup = document.getElementById('imagePopup');
+    
+    if (popup) {
+        popup.addEventListener('click', function(e) {
+            if (e.target === popup) {
+                closeImagePopup();
+            }
+        });
+    }
+});
