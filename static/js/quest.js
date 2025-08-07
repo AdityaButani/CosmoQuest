@@ -53,7 +53,8 @@ function toggleQuestContent() {
         // Hide content
         questContent.style.display = 'none';
         if (keyPoints) keyPoints.style.display = 'none';
-        if (visualSuggestions) visualSuggestions.style.display = 'none';
+        // Don't hide visual suggestions - they should always be visible
+        // if (visualSuggestions) visualSuggestions.style.display = 'none';
         
         icon.className = 'fas fa-eye mr-2';
         toggleBtn.innerHTML = '<i class="fas fa-eye mr-2"></i>Show Content';
