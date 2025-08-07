@@ -62,6 +62,7 @@ def quest_page(quest_num):
     # Generate quest content if not already generated
     if quest_key not in session:
         try:
+            logging.info(f"Generating quest {quest_num} for topic: {session.get('topic', 'unknown')}")
             quest_data = generate_quest_content(
                 session['topic'], 
                 quest_num, 
@@ -69,7 +70,9 @@ def quest_page(quest_num):
             )
             if quest_data:
                 session[quest_key] = quest_data
+                logging.info(f"Quest {quest_num} data generated and saved to session")
             else:
+                logging.error(f"Failed to generate quest {quest_num} data")
                 return render_template('quest.html', error="Failed to generate quest content")
         except Exception as e:
             logging.error(f"Error generating quest {quest_num}: {str(e)}")

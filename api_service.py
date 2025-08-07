@@ -312,7 +312,33 @@ def create_fallback_quiz(topic: str, spec: Dict) -> Dict[str, Any]:
             "correct_answers": {"q1": "true", "q2": "false", "q3": "true", "q4": "false", "q5": "true"}
         }
     
-    # Add other quiz types as needed
+    elif quiz_type == "matching":
+        return {
+            "type": "matching",
+            "instructions": "Match each term on the left with its correct definition on the right",
+            "left_items": [f"Basic {topic} concept 1", f"Key {topic} principle", f"Important {topic} method", f"{topic} application", f"Advanced {topic} idea"],
+            "right_items": [f"Fundamental principle of {topic}", f"Primary method used in {topic}", f"Core concept in {topic} studies", f"Practical use of {topic}", f"Complex aspect of {topic}"],
+            "correct_matches": {
+                f"Basic {topic} concept 1": f"Core concept in {topic} studies",
+                f"Key {topic} principle": f"Fundamental principle of {topic}",
+                f"Important {topic} method": f"Primary method used in {topic}",
+                f"{topic} application": f"Practical use of {topic}",
+                f"Advanced {topic} idea": f"Complex aspect of {topic}"
+            }
+        }
+    
+    elif quiz_type == "multiple_choice":
+        return {
+            "type": "multiple_choice",
+            "instructions": "Select the best answer for each question",
+            "questions": [
+                {"id": "q1", "question": f"What is the main focus of {topic}?", "options": [f"Understanding {topic} principles", "Random concepts", "Unrelated topics", "None of the above"], "type": "multiple_choice"},
+                {"id": "q2", "question": f"Which is most important in {topic}?", "options": ["Basic knowledge", "Advanced applications", f"Core {topic} concepts", "External factors"], "type": "multiple_choice"}
+            ],
+            "correct_answers": {"q1": f"Understanding {topic} principles", "q2": f"Core {topic} concepts"}
+        }
+    
+    # Default fallback
     return {
         "type": quiz_type,
         "instructions": "Complete the quiz questions",
