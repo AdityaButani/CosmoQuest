@@ -6,8 +6,6 @@ from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
-from dotenv import load_dotenv
-load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
